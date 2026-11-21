@@ -18,6 +18,7 @@
         </p>
       {{/if}}
       {{#if key}}<p class="vr-tag vr-tag-gold"><i class="fa-solid fa-star"></i> {{localize "VR.Dossier.KeyPerson"}}</p>{{/if}}
+      {{#if unlinked}}<p class="vr-tag vr-tag-muted" data-tooltip="{{localize "VR.Dossier.UnlinkedHint"}}"><i class="fa-solid fa-link-slash"></i> {{localize "VR.Dossier.Unlinked"}}</p>{{/if}}
     </div>
   </header>
 

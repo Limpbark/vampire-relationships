@@ -464,6 +464,25 @@ await test("rank, bloodline and coterie are read from the sheet and can be switc
   assert.equal(system.groupFor(actor("prince"), "coterie", ann), "");
 });
 
+await test("an unlinked token's own copy of the sheet is what the map reads", () => {
+  resetActors();
+  const base = game.actors.get("sheriff");
+  const copy = new Actor("sheriff", base.name, base.ownership, { ...base.system, vamp_rank: "Sheriff", isDead: true });
+  const linked = { actorId: "sheriff", actorLink: true, actor: base };
+  const unlinked = { actorId: "sheriff", actorLink: false, actor: copy };
+
+  assert.equal(visibility.sheetActor(linked), base);
+  assert.equal(visibility.sheetActor(unlinked), copy, "the token's copy, not the world Actor");
+  assert.equal(visibility.baseActor(unlinked), base, "identity and ownership stay with the world Actor");
+  assert.equal(visibility.sheetActor({ actorId: "sheriff", actor: null }), base, "no copy available: fall back");
+
+  const rank = (actor) => system.detailLines(actor, gm).find((line) => line.tone === "gold")?.text;
+  assert.equal(rank(visibility.sheetActor(linked)), undefined);
+  assert.equal(rank(visibility.sheetActor(unlinked)), "Sheriff");
+  assert.equal(system.statusFor(visibility.sheetActor(unlinked)), "destroyed", "the copy's dead box counts too");
+  assert.equal(system.statusFor(base), "active");
+});
+
 await test("statuses: catalogue, sheet fallback and explicit flags", async () => {
   for (const [id, def] of Object.entries(STATUSES)) {
     assert.ok(def.label, `${id}: label`);

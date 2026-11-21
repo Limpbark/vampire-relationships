@@ -26,6 +26,7 @@ import {
   canSeeToken,
   getViewAs,
   setViewAs,
+  sheetActor,
   viewer
 } from "./visibility.mjs";
 
@@ -283,13 +284,18 @@ class MapController {
 
     const nodes = [];
     const byActor = new Map();
+    const sheets = new Map();
     for (const token of this.visibleTokens()) {
       const doc = token.document;
+      // The world Actor carries identity, ownership and bonds; the sheet facts
+      // come from the token's own actor, which for an unlinked token is its copy.
       const actor = baseActor(doc);
+      const sheet = sheetActor(doc);
+      sheets.set(doc.id, sheet);
       // While a token is being dragged, follow its preview so bonds stretch live.
       const live = token.hasPreview && token._preview?._previewType === "dragging" ? token._preview : token;
-      const src = imageFor(doc, actor, config.image);
-      const status = statusFor(actor);
+      const src = imageFor(doc, sheet, config.image);
+      const status = statusFor(sheet);
       const node = {
         id: doc.id,
         actorId: actor?.id ?? "",
@@ -298,7 +304,7 @@ class MapController {
         w: token.w,
         h: token.h,
         name: doc.name || actor?.name || "",
-        lines: detailLines(actor, user, config),
+        lines: detailLines(sheet, user, config),
         img: src,
         texture: this._texture(src),
         fit: config.image === "token" ? "contain" : "cover",
@@ -367,9 +373,9 @@ class MapController {
     if (GROUPINGS.has(config.groups)) {
       const buckets = new Map();
       for (const node of nodes) {
-        const actor = game.actors.get(node.actorId);
         // Most characters belong to no coterie, so they get no outline of their own.
-        const key = groupFor(actor, config.groups, user) || (config.groups === "coterie" ? "" : t("Group.Unaligned"));
+        const key = groupFor(sheets.get(node.id), config.groups, user)
+          || (config.groups === "coterie" ? "" : t("Group.Unaligned"));
         if (!key) continue;
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(node.id);
@@ -437,6 +443,16 @@ class MapController {
     return this.visibleTokens().find((token) => token.document.actorId === actorId) ?? null;
   }
 
+  /**
+   * Where to read a character's sheet facts from: their token on this map when
+   * they have one (an unlinked token keeps its own copy of the sheet),
+   * otherwise the world Actor.
+   */
+  sheetActorFor(actorId) {
+    const token = this.active ? this.tokenForActor(actorId) : null;
+    return (token ? sheetActor(token.document) : null) ?? game.actors.get(actorId) ?? null;
+  }
+
   /** Zoom and pan so every visible character fits on screen. */
   fitView({ duration = 500 } = {}) {
     if (!this.active || !canvas?.ready) return;
@@ -498,7 +514,7 @@ class MapController {
         if (!byActor.has(actor.id)) byActor.set(actor.id, []);
         byActor.get(actor.id).push(token.document.id);
       }
-      return { id: token.document.id, group: groupFor(actor, groupBy, user) };
+      return { id: token.document.id, group: groupFor(sheetActor(token.document), groupBy, user) };
     });
     const edges = [];
     for (const bond of allBonds()) {

@@ -43,6 +43,17 @@ export function baseActor(tokenDocument) {
   return game.actors.get(tokenDocument?.actorId) ?? tokenDocument?.actor ?? null;
 }
 
+/**
+ * The Actor whose sheet opens from a token: the world Actor for a linked
+ * token, the token's own copy for an unlinked one. A character's sheet facts
+ * (clan, rank, coterie, the "dead" box ...) are read from here, so the map
+ * always agrees with the sheet the token opens. Identity, ownership and bonds
+ * stay with the world Actor: see baseActor().
+ */
+export function sheetActor(tokenDocument) {
+  return tokenDocument?.actor ?? baseActor(tokenDocument);
+}
+
 export function canSeeActor(actor, user = viewer()) {
   if (!user) return false;
   if (user.isGM) return true;

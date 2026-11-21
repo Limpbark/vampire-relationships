@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed: rank, clan, covenant, coterie, portrait and the sheet's "dead" box were
+  read from the Actor in the sidebar, so anything typed into the sheet of an
+  **unlinked** token never reached the map. The map and the dossier now read the
+  token's own sheet, which is the one that opens when you double-click it.
+- The dossier marks a character whose token on the map is unlinked, and its
+  sheet button opens the same sheet the token does.
+
 ## 0.2.0
 
 - Rank, bloodline and coterie are shown under each name, read from the character

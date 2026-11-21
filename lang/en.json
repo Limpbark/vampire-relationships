@@ -184,7 +184,9 @@
       "VisibleToAll": "Visible to all players",
       "VisibleTo": "Visible to {names}",
       "Rank": "Rank",
-      "Coterie": "Coterie"
+      "Coterie": "Coterie",
+      "Unlinked": "Unlinked token",
+      "UnlinkedHint": "This token keeps its own copy of the character sheet. The map shows that copy: open the sheet from the token to change it. Edits made to the Actor in the sidebar only show here for boxes the copy has not changed."
     },
     "Cast": {
       "Title": "Add to the Cast",

@@ -79,6 +79,12 @@ A token's ordinary *hidden* toggle still works and hides it from every player.
   sheet: the Clan, Bloodline, Covenant, Rank and Coterie boxes of the Vampire tab), so
   there is nothing to type twice. Rank, bloodline and coterie can each be switched off
   under **Appearance**.
+- **Linked and unlinked tokens.** The map shows the sheet that opens from the token. A
+  linked token opens the Actor's own sheet. An unlinked token keeps a private copy, so
+  what you type there shows on that token only, and the dossier marks it *Unlinked
+  token*. Bonds, status and visibility always belong to the Actor, whichever kind of
+  token stands for it. For one sheet per character, tick **Link Actor Data** in the
+  token's configuration.
 - **Arrange.** Network, Covenants, Clans, Coteries, Lineage (sires above childer) and
   Circle, each with undo. With two or more tokens selected, only those are arranged.
 - **Focus.** Hovering a character lights their ties and steps everything else back. Search

@@ -92,6 +92,10 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
     const editing = controller.editing;
     if (!actor) return { missing: true };
 
+    // Sheet facts are read from the character's token on this map when there is
+    // one: an unlinked token keeps its own copy of the sheet.
+    const sheet = controller.sheetActorFor(actor.id) ?? actor;
+    const token = controller.active ? controller.tokenForActor(actor.id) : null;
     const picture = (a) => (isPlaceholderImage(a?.img) ? "" : a.img);
     const { out, in: incoming } = bondsOf(actor.id);
     const ties = [];
@@ -105,15 +109,16 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
       const role = bondText(bond.type, outgoing ? "to" : "from") || bondText(bond.type, "label");
       const secret = editing ? bondSecrecy(bond) : "none";
       const onMap = !!controller.tokenForActor(otherId);
-      const otherStatus = statusFor(other);
+      const otherSheet = controller.sheetActorFor(otherId) ?? other;
+      const otherStatus = statusFor(otherSheet);
       ties.push({
         bondId: bond.id,
         category: def.category,
         otherId,
         otherName: other.name,
-        otherImg: picture(other),
+        otherImg: picture(otherSheet),
         otherInitials: initials(other.name),
-        otherSubtitle: subtitleFor(other, user),
+        otherSubtitle: subtitleFor(otherSheet, user),
         otherStatus: otherStatus === "active" ? "" : statusText(otherStatus),
         otherStatusColor: statusDef(otherStatus).color,
         otherGone: statusDef(otherStatus).gone,
@@ -170,14 +175,15 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     }
 
-    const status = statusFor(actor);
-    const details = detailsFor(actor, user);
+    const status = statusFor(sheet);
+    const details = detailsFor(sheet, user);
     return {
       editing,
       actorId: actor.id,
       name: actor.name,
-      img: picture(actor),
+      img: picture(sheet),
       initials: initials(actor.name),
+      unlinked: editing && !!token && token.document.actorLink === false,
       nature: details.nature,
       rank: details.rank,
       coterie: details.coterie,
@@ -232,8 +238,9 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
     this.show(actorId);
   }
 
+  /** Open the same sheet a double-click on the character's token would. */
   static #onOpenSheet() {
-    this.actor?.sheet?.render(true);
+    (controller.sheetActorFor(this.actorId) ?? this.actor)?.sheet?.render(true);
   }
 
   static async #onToggleKey() {

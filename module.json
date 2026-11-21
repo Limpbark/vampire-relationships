@@ -2,7 +2,7 @@
   "id": "vampire-relationships",
   "title": "Vampire Relationships",
   "description": "<p>A relationship map for vampire chronicles, drawn on its own scene. Characters are tokens shown as portraits; bonds between them (sire and childe, regnant and ghoul, allies, rivals, debts...) are coloured, labelled lines.</p><p>Who sees what follows Foundry ownership: a player only meets the characters they have ownership of, and each bond has its own audience. Built for the Vampire the Requiem 2E system, and usable with any other.</p>",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14.370"

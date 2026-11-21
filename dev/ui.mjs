@@ -37,7 +37,8 @@ function portrait([from, tone], tall) {
 const kindred = (clan, covenant, extra = {}) => ({ characterVariant: "vampire", clan, covenant, ...extra });
 const cast = [
   { id: "vance", name: "Prince Vance", ownership: { default: 1 }, system: kindred("Ventrue", "Invictus", { isTypeKnown: true, vamp_rank: "Prince" }), art: ["#3b0d0d", "#c5a059"], key: true },
-  { id: "mara", name: "Sheriff Mara", ownership: { default: 1 }, system: kindred("Gangrel", "Invictus", { isTypeKnown: true, vamp_rank: "Sheriff" }), art: ["#1f2937", "#9ca3af"] },
+  // Unlinked: the Actor has no rank, the token's own copy of the sheet does.
+  { id: "mara", name: "Sheriff Mara", ownership: { default: 1 }, system: kindred("Gangrel", "Invictus", { isTypeKnown: true }), art: ["#1f2937", "#9ca3af"], unlinked: { system: { vamp_rank: "Sheriff", faction: "The Hounds" } } },
   { id: "odile", name: "Odile Marchetti", ownership: { default: 1 }, system: kindred("Daeva", "Invictus", { bloodline: "Toreador", vamp_rank: "Harpy" }), art: ["#4a044e", "#f472b6"], tall: true },
   { id: "benny", name: "Benny Ruiz", ownership: { default: 0 }, system: { characterVariant: "ghoul" }, art: null },
   { id: "silas", name: "Brother Silas", ownership: { default: 0, ann: 1 }, system: kindred("Nosferatu", "Lancea et Sanctum", { vamp_rank: "Bishop" }), art: ["#1c1917", "#a8a29e"], status: "missing" },
@@ -118,7 +119,8 @@ async function main() {
       name: person.name,
       x: Math.round(scene.width / 2 + p.x - 50),
       y: Math.round(scene.height / 2 + p.y - 50),
-      texture: { src: actor.img }
+      texture: { src: actor.img },
+      ...(person.unlinked ? { actorLink: false, delta: person.unlinked } : {})
     }, scene));
   }
   game.scenes.set(scene.id, scene);

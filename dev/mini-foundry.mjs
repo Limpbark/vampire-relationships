@@ -124,8 +124,13 @@ class TokenDocument {
     this.parent = scene;
     this.object = null;
   }
+  /** Like Foundry: the world Actor when linked, otherwise a copy with this token's changes applied. */
   get actor() {
-    return game.actors.get(this.actorId) ?? null;
+    const base = game.actors.get(this.actorId) ?? null;
+    if (!base || this.actorLink !== false) return base;
+    const copy = new Actor({ ...base, system: { ...base.system, ...(this.delta?.system ?? {}) } });
+    if (this.delta?.img) copy.img = this.delta.img;
+    return copy;
   }
   getSize() {
     return { width: this.width * 100, height: this.height * 100 };
