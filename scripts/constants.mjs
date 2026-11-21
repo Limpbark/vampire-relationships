@@ -15,7 +15,7 @@ export const FLAG = {
   CONFIG: "config",
   /** Actor: record of outgoing bonds, keyed by bond id. */
   BONDS: "bonds",
-  /** Actor: narrative status shown on the map (active / torpor / missing / dead). */
+  /** Actor: narrative status shown on the map (a key of STATUSES). */
   STATUS: "status",
   /** Actor: marks one of the chronicle's key people. */
   KEY: "key"
@@ -33,6 +33,7 @@ export const COLORS = {
   disc: 0x161618,
   text: 0xf0eeea,
   muted: 0x9f9fa9,
+  soft: 0xcbc6bc,
   faint: 0x52525b,
   gold: 0xc5a059,
   blood: 0x991b1b,
@@ -48,11 +49,15 @@ export const DEFAULT_CONFIG = Object.freeze({
   image: "portrait",
   /** Show the label chip on each bond. */
   labels: true,
-  /** Show clan / covenant under each name. */
+  /** Show the details under each name (rank, clan, covenant, coterie). */
   subtitles: true,
+  /** Which of the optional details are printed there. */
+  showBloodline: true,
+  showRank: true,
+  showCoterie: true,
   /** Distinguish bond categories by dash pattern as well as colour. */
   patterned: false,
-  /** Draw an outline around each group: "none" | "covenant" | "clan". */
+  /** Draw an outline around each group: "none" | "covenant" | "clan" | "coterie". */
   groups: "none",
   /** A stray drag moves nothing. */
   lockLayout: false,
@@ -118,13 +123,29 @@ export const BOND_TYPES = Object.freeze({
 
 export const DEFAULT_BOND_TYPE = "ally";
 
-/** Narrative statuses a character can carry on the map. */
+/**
+ * Narrative statuses a character can carry on the map.
+ *  - glyph:  the mark in the corner badge and before the caption
+ *  - color:  caption and badge colour
+ *  - art:    how the portrait is treated: "dim" | "faded" | "grey"
+ *  - ring:   "dashed" breaks the portrait's border, "grey" drains its colour
+ *  - struck: a stroke is drawn through the portrait
+ *  - gone:   the character is out of the story, for now or for good
+ * Glyphs are kept to Latin-1 so every font in the stacks below can draw them.
+ */
 export const STATUSES = Object.freeze({
-  active: { label: "Active", glyph: "" },
-  torpor: { label: "Torpor", glyph: "T" },
-  missing: { label: "Missing", glyph: "?" },
-  dead: { label: "Final Death", glyph: "†" }
+  active: { label: "Active", glyph: "", color: "", gone: false },
+  torpor: { label: "Torpor", glyph: "Z", color: "#8fa8c8", art: "dim", gone: false },
+  missing: { label: "Missing", glyph: "?", color: "#f59e0b", art: "faded", ring: "dashed", gone: true },
+  away: { label: "Left the City", glyph: "»", color: "#a1a1aa", art: "faded", ring: "dashed", gone: true },
+  dead: { label: "Dead", glyph: "†", color: "#d4d4d8", art: "grey", ring: "grey", struck: true, gone: true },
+  destroyed: { label: "Destroyed", glyph: "×", color: "#ef4444", art: "grey", ring: "grey", struck: true, gone: true }
 });
+
+/** Resolve a status id to its definition, falling back to "active". */
+export function statusDef(id) {
+  return STATUSES[id] ?? STATUSES.active;
+}
 
 /**
  * Font stacks. The first family that is actually available wins on the canvas.

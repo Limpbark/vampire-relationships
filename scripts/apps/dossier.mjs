@@ -5,11 +5,11 @@
  * as the map. Storytellers also get quick controls for who can see the
  * character, their status, and their bonds.
  */
-import { BOND_TYPES, CATEGORIES, FLAG, MODULE_ID, OWNERSHIP, STATUSES } from "../constants.mjs";
+import { BOND_TYPES, CATEGORIES, FLAG, MODULE_ID, OWNERSHIP, STATUSES, statusDef } from "../constants.mjs";
 import { bondsOf, perspective } from "../bonds.mjs";
 import { controller } from "../controller.mjs";
 import { bondText, categoryText, statusText, t } from "../i18n.mjs";
-import { isKeyPerson, isPlaceholderImage, statusFor, subtitleFor } from "../system.mjs";
+import { detailsFor, isKeyPerson, isPlaceholderImage, setStatus, statusFor, subtitleFor } from "../system.mjs";
 import {
   actorAudience,
   actorSecrecy,
@@ -41,6 +41,7 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
       visit: Dossier.#onVisit,
       openSheet: Dossier.#onOpenSheet,
       toggleKey: Dossier.#onToggleKey,
+      setStatus: Dossier.#onSetStatus,
       reveal: Dossier.#onReveal,
       conceal: Dossier.#onConceal,
       ownership: Dossier.#onOwnership,
@@ -104,6 +105,7 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
       const role = bondText(bond.type, outgoing ? "to" : "from") || bondText(bond.type, "label");
       const secret = editing ? bondSecrecy(bond) : "none";
       const onMap = !!controller.tokenForActor(otherId);
+      const otherStatus = statusFor(other);
       ties.push({
         bondId: bond.id,
         category: def.category,
@@ -112,6 +114,9 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
         otherImg: picture(other),
         otherInitials: initials(other.name),
         otherSubtitle: subtitleFor(other, user),
+        otherStatus: otherStatus === "active" ? "" : statusText(otherStatus),
+        otherStatusColor: statusDef(otherStatus).color,
+        otherGone: statusDef(otherStatus).gone,
         onMap,
         canEdit: editing,
         canAdd: editing && controller.active && !onMap,
@@ -166,19 +171,31 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const status = statusFor(actor);
+    const details = detailsFor(actor, user);
     return {
       editing,
       actorId: actor.id,
       name: actor.name,
       img: picture(actor),
       initials: initials(actor.name),
-      subtitle: subtitleFor(actor, user),
+      nature: details.nature,
+      rank: details.rank,
+      coterie: details.coterie,
       onMap: !!controller.tokenForActor(actor.id),
       mapActive: controller.active,
       key: isKeyPerson(actor),
       status,
       statusLabel: status === "active" ? "" : statusText(status),
-      statuses: Object.keys(STATUSES).map((id) => ({ id, label: statusText(id), selected: id === status })),
+      statusColor: statusDef(status).color,
+      statusGlyph: statusDef(status).glyph,
+      art: statusDef(status).art ?? "",
+      statuses: Object.entries(STATUSES).map(([id, def]) => ({
+        id,
+        label: statusText(id),
+        glyph: def.glyph,
+        color: def.color || "#86efac",
+        selected: id === status
+      })),
       audience,
       counts,
       groups,
@@ -191,15 +208,6 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
         unknownSire: !sires.length
       }
     };
-  }
-
-  _onRender() {
-    const select = this.element.querySelector("select[data-status]");
-    select?.addEventListener("change", async (event) => {
-      const actor = this.actor;
-      if (!actor || !controller.editing) return;
-      await actor.setFlag(MODULE_ID, FLAG.STATUS, event.target.value);
-    });
   }
 
   /* -------------------------------------------- */
@@ -232,6 +240,14 @@ export class Dossier extends HandlebarsApplicationMixin(ApplicationV2) {
     const actor = this.actor;
     if (!actor || !controller.editing) return;
     await actor.setFlag(MODULE_ID, FLAG.KEY, !isKeyPerson(actor));
+  }
+
+  /** Flag the character as active, in torpor, missing, dead and so on. */
+  static async #onSetStatus(event, target) {
+    const actor = this.actor;
+    const status = target.closest("[data-status]")?.dataset.status;
+    if (!actor || !controller.editing) return;
+    await setStatus(actor, status);
   }
 
   /** Let every player see this character: raise the default ownership to the map's threshold. */

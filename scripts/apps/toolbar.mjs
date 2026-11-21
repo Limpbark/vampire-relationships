@@ -192,6 +192,7 @@ export class MapToolbar {
         ${item("network", "fa-share-nodes", t("Arrange.Network"), t("Arrange.NetworkHint"))}
         ${item("covenant", "fa-flag", t("Arrange.Covenant"), t("Arrange.CovenantHint"))}
         ${item("clan", "fa-droplet", t("Arrange.Clan"), t("Arrange.ClanHint"))}
+        ${item("coterie", "fa-people-group", t("Arrange.Coterie"), t("Arrange.CoterieHint"))}
         ${item("lineage", "fa-sitemap", t("Arrange.Lineage"), t("Arrange.LineageHint"))}
         ${item("circle", "fa-circle-notch", t("Arrange.Circle"), t("Arrange.CircleHint"))}
         <hr>
@@ -265,7 +266,16 @@ export class MapToolbar {
         <h4>${esc(t("Appearance.Portraits"))}</h4>
         ${select("image", [["portrait", t("Appearance.ImagePortrait")], ["token", t("Appearance.ImageToken")]])}
         <h4>${esc(t("Appearance.Groups"))}</h4>
-        ${select("groups", [["none", t("Appearance.GroupsNone")], ["covenant", t("Appearance.GroupsCovenant")], ["clan", t("Appearance.GroupsClan")]])}
+        ${select("groups", [
+          ["none", t("Appearance.GroupsNone")],
+          ["covenant", t("Appearance.GroupsCovenant")],
+          ["clan", t("Appearance.GroupsClan")],
+          ["coterie", t("Appearance.GroupsCoterie")]
+        ])}
+        <h4>${esc(t("Appearance.Details"))}</h4>
+        ${toggle("showRank", t("Appearance.Rank"), t("Appearance.RankHint"))}
+        ${toggle("showBloodline", t("Appearance.Bloodline"), t("Appearance.BloodlineHint"))}
+        ${toggle("showCoterie", t("Appearance.Coterie"), t("Appearance.CoterieHint"))}
         <h4>${esc(t("Appearance.Show"))}</h4>
         ${toggle("hoverFocus", t("Appearance.HoverFocus"), t("Appearance.HoverFocusHint"))}
         ${toggle("backdrop", t("Appearance.Backdrop"), t("Appearance.BackdropHint"))}

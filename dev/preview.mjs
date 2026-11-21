@@ -23,17 +23,31 @@ const state = {
 
 /* A small invented court. */
 const cast = [
-  { id: "vance", name: "Prince Vance", clan: "Ventrue", covenant: "Invictus", key: true, art: ["#3b0d0d", "#c5a059"] },
-  { id: "mara", name: "Sheriff Mara", clan: "Gangrel", covenant: "Invictus", art: ["#1f2937", "#9ca3af"] },
-  { id: "odile", name: "Odile Marchetti", clan: "Daeva", covenant: "Invictus", art: ["#4a044e", "#f472b6"], tall: true },
-  { id: "benny", name: "Benny Ruiz", clan: "Ghoul", covenant: "", secret: "all", art: null },
-  { id: "silas", name: "Brother Silas", clan: "Nosferatu", covenant: "Lancea et Sanctum", secret: "some", art: ["#1c1917", "#a8a29e"] },
-  { id: "iris", name: "Iris Vey", clan: "Mekhet", covenant: "Ordo Dracul", art: ["#0c4a6e", "#7dd3fc"], tall: true },
-  { id: "cole", name: "Father Cole", clan: "Mortal", covenant: "", art: ["#292524", "#e7e5e4"] },
-  { id: "rook", name: "Rook", clan: "Gangrel", covenant: "Carthian Movement", status: "torpor", art: ["#14532d", "#86efac"] },
-  { id: "halloran", name: "Aldous Halloran", clan: "Ventrue", covenant: "Invictus", status: "dead", art: ["#312e81", "#a5b4fc"] },
-  { id: "wren", name: "Wren", clan: "Daeva", covenant: "Carthian Movement", art: ["#7c2d12", "#fdba74"], tall: true }
+  { id: "vance", name: "Prince Vance", clan: "Ventrue", covenant: "Invictus", rank: "Prince", key: true, art: ["#3b0d0d", "#c5a059"] },
+  { id: "mara", name: "Sheriff Mara", clan: "Gangrel", covenant: "Invictus", rank: "Sheriff", art: ["#1f2937", "#9ca3af"] },
+  { id: "odile", name: "Odile Marchetti", clan: "Daeva", bloodline: "Toreador", covenant: "Invictus", rank: "Harpy", art: ["#4a044e", "#f472b6"], tall: true },
+  { id: "benny", name: "Benny Ruiz", clan: "Ghoul", covenant: "", secret: "all", status: "away", art: null },
+  { id: "silas", name: "Brother Silas", clan: "Nosferatu", covenant: "Lancea et Sanctum", rank: "Bishop", secret: "some", status: "missing", art: ["#1c1917", "#a8a29e"] },
+  { id: "iris", name: "Iris Vey", clan: "Mekhet", bloodline: "Khaibit", covenant: "Ordo Dracul", coterie: "The After-Party", art: ["#0c4a6e", "#7dd3fc"], tall: true },
+  { id: "cole", name: "Father Cole", clan: "Mortal", covenant: "", status: "dead", art: ["#292524", "#e7e5e4"] },
+  { id: "rook", name: "Rook", clan: "Gangrel", covenant: "Carthian Movement", coterie: "The After-Party", status: "torpor", art: ["#14532d", "#86efac"] },
+  { id: "halloran", name: "Aldous Halloran", clan: "Ventrue", covenant: "Invictus", rank: "Former Prince", status: "destroyed", art: ["#312e81", "#a5b4fc"] },
+  { id: "wren", name: "Wren", clan: "Daeva", covenant: "Carthian Movement", coterie: "The After-Party", art: ["#7c2d12", "#fdba74"], tall: true }
 ];
+
+/** What a character is grouped by, for outlines and the grouped layout. */
+const groupOf = (person) => (state.groups === "clan" ? person.clan : state.groups === "coterie" ? person.coterie : person.covenant) ?? "";
+
+/** The same lines the module builds from a character sheet. */
+function detailLines(person) {
+  const lines = [];
+  if (person.rank) lines.push({ text: person.rank, tone: "gold", caps: true });
+  const clan = person.bloodline ? `${person.clan} (${person.bloodline})` : person.clan;
+  const nature = [clan, person.covenant].filter(Boolean).join(" · ");
+  if (nature) lines.push({ text: nature, tone: "muted" });
+  if (person.coterie) lines.push({ text: person.coterie, tone: "soft" });
+  return lines;
+}
 
 const bonds = [
   { id: "b1", a: "halloran", b: "vance", type: "sire" },
@@ -116,7 +130,7 @@ async function main() {
 
   function positions() {
     const cards = state.style === "cards";
-    const nodes = cast.map((person) => ({ id: person.id, group: state.groups === "clan" ? person.clan : person.covenant }));
+    const nodes = cast.map((person) => ({ id: person.id, group: groupOf(person) }));
     const edges = bonds.map((bond) => ({ a: bond.a, b: bond.b, lineage: BOND_TYPES[bond.type].lineage }));
     const spacing = cards ? 300 : 270;
     if (state.layout === "circle") return circleLayout(nodes, { spacing });
@@ -137,7 +151,7 @@ async function main() {
         w: size,
         h: size,
         name: person.name,
-        subtitle: [person.clan, person.covenant].filter(Boolean).join(" · "),
+        lines: detailLines(person),
         img: person.id,
         texture: textures.get(person.id),
         fit: "cover",
@@ -177,7 +191,8 @@ async function main() {
     if (state.groups !== "none") {
       const buckets = new Map();
       for (const person of cast) {
-        const key = (state.groups === "clan" ? person.clan : person.covenant) || "Unaligned";
+        const key = groupOf(person) || (state.groups === "coterie" ? "" : "Unaligned");
+        if (!key) continue;
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(person.id);
       }
@@ -230,7 +245,7 @@ async function main() {
   const controls = [
     ["style", ["constellation", "cards"]],
     ["layout", ["network", "circle", "groups", "lineage"]],
-    ["groups", ["none", "covenant", "clan"]],
+    ["groups", ["none", "covenant", "clan", "coterie"]],
     ["labels", [true, false]],
     ["patterned", [false, true]],
     ["selected", ["", "vance", "odile"]]

@@ -157,7 +157,9 @@ globalThis.game = {
 function resetActors() {
   game.actors.clear();
   const make = (id, name, ownership, system) => game.actors.set(id, new Actor(id, name, ownership, system));
-  make("prince", "Prince Vance", { default: 1 }, { characterVariant: "vampire", clan: "Ventrue", covenant: "Invictus" });
+  make("prince", "Prince Vance", { default: 1 }, {
+    characterVariant: "vampire", clan: "Ventrue", bloodline: "Malkovian", covenant: "Invictus", vamp_rank: "Prince", faction: "The Court"
+  });
   make("sheriff", "Sheriff Mara", { default: 0, ann: 1 }, { characterVariant: "vampire", clan: "Gangrel", covenant: "Invictus" });
   make("ghoul", "Benny", { default: 0 }, { characterVariant: "ghoul" });
   make("pc", "Ann's Kindred", { default: 0, ann: 3 }, { characterVariant: "vampire", clan: "Daeva", isTypeKnown: true });
@@ -167,7 +169,7 @@ function resetActors() {
 /*  Tests                                       */
 /* -------------------------------------------- */
 
-const { BOND_TYPES, CATEGORIES, DEFAULT_CONFIG, MODULE_ID, hexToNumber } = await import("../scripts/constants.mjs");
+const { BOND_TYPES, CATEGORIES, DEFAULT_CONFIG, MODULE_ID, STATUSES, hexToNumber, statusDef } = await import("../scripts/constants.mjs");
 const geometry = await import("../scripts/geometry.mjs");
 const layout = await import("../scripts/layout.mjs");
 
@@ -438,13 +440,56 @@ await test("system adapter reads the Requiem sheet and respects 'type known'", (
   assert.equal(system.groupFor(actor("prince"), "covenant", gm), "Invictus");
   assert.equal(system.groupFor(actor("ghoul"), "clan", gm), "Ghoul");
   assert.equal(system.groupFor(actor("prince"), "clan", ann), "");
-  assert.equal(system.statusFor(actor("prince")), "active");
-  actor("prince").system.isDead = true;
-  assert.equal(system.statusFor(actor("prince")), "dead");
-  actor("prince").flags[MODULE_ID] = { status: "torpor" };
-  assert.equal(system.statusFor(actor("prince")), "torpor", "an explicit status wins");
   assert.equal(system.imageFor({ texture: { src: "a.webp" } }, { img: "icons/svg/mystery-man.svg" }, "portrait"), "a.webp");
   assert.equal(system.imageFor({ texture: { src: "icons/svg/mystery-man.svg" } }, { img: "" }, "token"), "");
+});
+
+await test("rank, bloodline and coterie are read from the sheet and can be switched off", () => {
+  resetActors();
+  const actor = (id) => game.actors.get(id);
+  assert.deepEqual(system.detailLines(actor("prince"), gm), [
+    { text: "Prince", tone: "gold", caps: true },
+    { text: "Ventrue (Malkovian) · Invictus", tone: "muted" },
+    { text: "The Court", tone: "soft" }
+  ]);
+  assert.deepEqual(
+    system.detailLines(actor("prince"), gm, { showRank: false, showBloodline: false, showCoterie: false }),
+    [{ text: "Ventrue · Invictus", tone: "muted" }]
+  );
+  assert.deepEqual(system.detailLines(actor("prince"), ann), [], "Limited ownership reveals none of it");
+  assert.deepEqual(system.detailLines(actor("ghoul"), gm), [{ text: "Ghoul", tone: "muted" }]);
+  assert.deepEqual(system.detailsFor(actor("prince"), ann), { rank: "", nature: "", coterie: "" });
+  assert.equal(system.groupFor(actor("prince"), "coterie", gm), "The Court");
+  assert.equal(system.groupFor(actor("sheriff"), "coterie", gm), "", "no coterie, no group");
+  assert.equal(system.groupFor(actor("prince"), "coterie", ann), "");
+});
+
+await test("statuses: catalogue, sheet fallback and explicit flags", async () => {
+  for (const [id, def] of Object.entries(STATUSES)) {
+    assert.ok(def.label, `${id}: label`);
+    if (id === "active") continue;
+    assert.ok(def.glyph, `${id}: glyph`);
+    assert.match(def.color, /^#[0-9a-f]{6}$/, `${id}: colour`);
+    assert.ok(["dim", "faded", "grey"].includes(def.art), `${id}: portrait treatment`);
+    assert.equal(typeof lookup(`VR.Status.${id}`), "string", `${id}: translated`);
+  }
+  for (const id of ["missing", "away", "dead", "destroyed"]) assert.ok(STATUSES[id].gone, `${id} counts as gone`);
+  assert.equal(statusDef("nonsense"), STATUSES.active);
+
+  resetActors();
+  const actor = (id) => game.actors.get(id);
+  assert.equal(system.statusFor(actor("prince")), "active");
+  actor("prince").system.isDead = true;
+  assert.equal(system.statusFor(actor("prince")), "destroyed", "a vampire's ticked dead box is Final Death");
+  actor("ghoul").system.isDead = true;
+  assert.equal(system.statusFor(actor("ghoul")), "dead", "anyone else is simply dead");
+
+  assert.ok(await system.setStatus(actor("prince"), "missing"));
+  assert.equal(system.statusFor(actor("prince")), "missing", "an explicit status wins");
+  assert.ok(await system.setStatus(actor("prince"), "active"));
+  assert.equal(system.statusFor(actor("prince")), "active", "and can overrule the sheet");
+  assert.equal(await system.setStatus(actor("prince"), "nonsense"), false);
+  assert.equal(system.statusFor(actor("prince")), "active");
 });
 
 await test("map tokens: layout lock and player moves are refused", () => {

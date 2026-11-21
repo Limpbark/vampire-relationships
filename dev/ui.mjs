@@ -36,16 +36,16 @@ function portrait([from, tone], tall) {
 
 const kindred = (clan, covenant, extra = {}) => ({ characterVariant: "vampire", clan, covenant, ...extra });
 const cast = [
-  { id: "vance", name: "Prince Vance", ownership: { default: 1 }, system: kindred("Ventrue", "Invictus", { isTypeKnown: true }), art: ["#3b0d0d", "#c5a059"], key: true },
-  { id: "mara", name: "Sheriff Mara", ownership: { default: 1 }, system: kindred("Gangrel", "Invictus", { isTypeKnown: true }), art: ["#1f2937", "#9ca3af"] },
-  { id: "odile", name: "Odile Marchetti", ownership: { default: 1 }, system: kindred("Daeva", "Invictus"), art: ["#4a044e", "#f472b6"], tall: true },
+  { id: "vance", name: "Prince Vance", ownership: { default: 1 }, system: kindred("Ventrue", "Invictus", { isTypeKnown: true, vamp_rank: "Prince" }), art: ["#3b0d0d", "#c5a059"], key: true },
+  { id: "mara", name: "Sheriff Mara", ownership: { default: 1 }, system: kindred("Gangrel", "Invictus", { isTypeKnown: true, vamp_rank: "Sheriff" }), art: ["#1f2937", "#9ca3af"] },
+  { id: "odile", name: "Odile Marchetti", ownership: { default: 1 }, system: kindred("Daeva", "Invictus", { bloodline: "Toreador", vamp_rank: "Harpy" }), art: ["#4a044e", "#f472b6"], tall: true },
   { id: "benny", name: "Benny Ruiz", ownership: { default: 0 }, system: { characterVariant: "ghoul" }, art: null },
-  { id: "silas", name: "Brother Silas", ownership: { default: 0, ann: 1 }, system: kindred("Nosferatu", "Lancea et Sanctum"), art: ["#1c1917", "#a8a29e"] },
-  { id: "iris", name: "Iris Vey", ownership: { default: 1 }, system: kindred("Mekhet", "Ordo Dracul"), art: ["#0c4a6e", "#7dd3fc"], tall: true },
-  { id: "cole", name: "Father Cole", ownership: { default: 0 }, system: { characterVariant: "mortal" }, art: ["#292524", "#e7e5e4"] },
-  { id: "rook", name: "Rook", ownership: { default: 0, bob: 3 }, system: kindred("Gangrel", "Carthian Movement"), art: ["#14532d", "#86efac"], status: "torpor" },
+  { id: "silas", name: "Brother Silas", ownership: { default: 0, ann: 1 }, system: kindred("Nosferatu", "Lancea et Sanctum", { vamp_rank: "Bishop" }), art: ["#1c1917", "#a8a29e"], status: "missing" },
+  { id: "iris", name: "Iris Vey", ownership: { default: 1 }, system: kindred("Mekhet", "Ordo Dracul", { bloodline: "Khaibit", faction: "The After-Party", isTypeKnown: true }), art: ["#0c4a6e", "#7dd3fc"], tall: true },
+  { id: "cole", name: "Father Cole", ownership: { default: 0 }, system: { characterVariant: "mortal", isDead: true }, art: ["#292524", "#e7e5e4"] },
+  { id: "rook", name: "Rook", ownership: { default: 0, bob: 3 }, system: kindred("Gangrel", "Carthian Movement", { faction: "The After-Party" }), art: ["#14532d", "#86efac"], status: "torpor" },
   { id: "halloran", name: "Aldous Halloran", ownership: { default: 1 }, system: kindred("Ventrue", "Invictus", { isDead: true, isTypeKnown: true }), art: ["#312e81", "#a5b4fc"] },
-  { id: "wren", name: "Wren", ownership: { default: 1, ann: 3 }, system: kindred("Daeva", "Carthian Movement", { isTypeKnown: true }), art: ["#7c2d12", "#fdba74"], tall: true },
+  { id: "wren", name: "Wren", ownership: { default: 1, ann: 3 }, system: kindred("Daeva", "Carthian Movement", { isTypeKnown: true, faction: "The After-Party" }), art: ["#7c2d12", "#fdba74"], tall: true },
   // Not placed on the map: shows up in the Cast picker.
   { id: "lucien", name: "Lucien Draye", ownership: { default: 0 }, system: kindred("Mekhet", "Circle of the Crone"), art: ["#3f3f46", "#d4d4d8"], offMap: true },
   { id: "nell", name: "Nell", ownership: { default: 1 }, system: { characterVariant: "mortal" }, art: null, offMap: true }

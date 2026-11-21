@@ -44,7 +44,7 @@
       "Cards": "Cards: portrait and name plate",
       "Search": "Search by name...",
       "Labels": "Bond labels",
-      "Subtitles": "Clan and covenant under names",
+      "Subtitles": "Details under names: rank, clan, covenant, coterie",
       "Patterned": "Patterned lines by bond category",
       "Fit": "Fit the map to the screen",
       "ViewAs": "See as a player",
@@ -68,7 +68,9 @@
       "Circle": "Circle",
       "CircleHint": "Everyone on a single ring.",
       "Undo": "Undo last arrange",
-      "SelectionHint": "With two or more tokens selected, only those are arranged."
+      "SelectionHint": "With two or more tokens selected, only those are arranged.",
+      "Coterie": "Coteries",
+      "CoterieHint": "Each coterie gathered together, everyone else alongside."
     },
     "ViewAs": {
       "Title": "See as",
@@ -100,7 +102,15 @@
       "Layout": "Layout",
       "Lock": "Lock layout",
       "LockHint": "A stray drag moves nothing.",
-      "Shared": "These choices are saved on the scene and shared with every player."
+      "Shared": "These choices are saved on the scene and shared with every player.",
+      "GroupsCoterie": "By coterie",
+      "Details": "Under each name",
+      "Rank": "Rank",
+      "RankHint": "The Rank box on the sheet's Vampire tab, in gold capitals.",
+      "Bloodline": "Bloodline",
+      "BloodlineHint": "In brackets after the clan.",
+      "Coterie": "Coterie",
+      "CoterieHint": "The Coterie box on the sheet."
     },
     "Bond": {
       "New": "New Bond",
@@ -172,7 +182,9 @@
       "Childer": "Childer",
       "HiddenFromPlayers": "Hidden from players",
       "VisibleToAll": "Visible to all players",
-      "VisibleTo": "Visible to {names}"
+      "VisibleTo": "Visible to {names}",
+      "Rank": "Rank",
+      "Coterie": "Coterie"
     },
     "Cast": {
       "Title": "Add to the Cast",
@@ -222,7 +234,9 @@
       "active": "Active",
       "torpor": "Torpor",
       "missing": "Missing",
-      "dead": "Final Death"
+      "away": "Left the City",
+      "dead": "Dead",
+      "destroyed": "Destroyed"
     },
     "BondType": {
       "sire": {

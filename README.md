@@ -14,6 +14,8 @@ system. It runs in any other system too; it just has less to print under each na
 
 ![Cards view, as a player](docs/cards-player.jpg)
 
+![Rank, bloodline and coterie under each name; Destroyed, Missing and Torpor flags](docs/status.jpg)
+
 *Screenshots are from the development preview, with stand-in portraits.*
 
 ## Install
@@ -50,7 +52,8 @@ Everything hangs off Foundry's own ownership levels.
 | --- | --- |
 | A **character** | they hold at least **Limited** ownership of its Actor (the level is a module setting). Set it the usual way, with *Configure Ownership*, or with the quick buttons in the dossier. |
 | A **bond** | the bond's audience includes them (**Everyone**, **Storyteller only**, or **Specific players**) **and** they can see the characters at both ends. |
-| **Clan and covenant** under a name | they have Observer ownership or better, or the sheet's *type known* box is ticked. |
+| **Rank, clan, bloodline, covenant and coterie** under a name | they have Observer ownership or better, or the sheet's *type known* box is ticked. |
+| A character's **status** (Missing, Destroyed and so on) | they can see the character. |
 | **Storyteller notes** on a bond | never. |
 
 Storytellers see everything, with a gold lock on anything no player can see and a
@@ -71,15 +74,25 @@ A token's ordinary *hidden* toggle still works and hides it from every player.
   colour. A bond can carry an arrow, a label, a strength from 1 to 5 (line weight), a
   key-tie mark, public notes and Storyteller-only notes. Hover a label for details; click it
   to edit.
-- **Arrange.** Network, Covenants, Clans, Lineage (sires above childer) and Circle, each
-  with undo. With two or more tokens selected, only those are arranged.
+- **Under each name.** Rank in gold, then clan with the bloodline in brackets and the
+  covenant, then the coterie. All of it is read from the character sheet (on the Requiem
+  sheet: the Clan, Bloodline, Covenant, Rank and Coterie boxes of the Vampire tab), so
+  there is nothing to type twice. Rank, bloodline and coterie can each be switched off
+  under **Appearance**.
+- **Arrange.** Network, Covenants, Clans, Coteries, Lineage (sires above childer) and
+  Circle, each with undo. With two or more tokens selected, only those are arranged.
 - **Focus.** Hovering a character lights their ties and steps everything else back. Search
   by name; press Enter to jump there.
 - **Filters.** Hide bond types you do not want to look at right now. Filters are personal.
 - **Appearance.** Portrait source (Actor portrait or token image), outlines around each
-  covenant or clan, patterned lines by family, and a layout lock.
-- **Character marks.** Status (Torpor, Missing, Final Death) and a star for key people, set
-  from the dossier. A character marked dead on their sheet is greyed out automatically.
+  covenant, clan or coterie, patterned lines by family, and a layout lock.
+- **Status.** Flag a character from their dossier with one click: Torpor, Missing, Left
+  the City, Dead or Destroyed. The map shows it four ways at once, so it reads at any
+  zoom: a boxed caption under the name, a badge on the portrait, a drained portrait, and
+  for the missing a broken ring, for the dead a stroke through the picture. A character
+  whose sheet is marked dead shows as Destroyed (vampires) or Dead (everyone else)
+  without any flag; set the status to Active to overrule the sheet.
+- **Key people.** A gold star, set from the dossier.
 
 Bonds are stored on the Actor they start from, not on the scene. Put the same characters on
 a second map and their ties come with them.
@@ -101,10 +114,11 @@ const vr = game.modules.get("vampire-relationships").api;
 await vr.createMapScene({ name: "The Court" });
 await vr.bonds.save({ from: actorA.id, to: actorB.id, type: "sire", label: "Embraced 1892" });
 vr.bonds.of(actorA.id);        // { out: [...], in: [...] }
+await vr.status.set(actorA.id, "missing");   // active, torpor, missing, away, dead, destroyed
 vr.openDossier(actorA.id);
 ```
 
-Bond types are listed in [`scripts/constants.mjs`](scripts/constants.mjs).
+Bond types and statuses are listed in [`scripts/constants.mjs`](scripts/constants.mjs).
 
 ## Development
 

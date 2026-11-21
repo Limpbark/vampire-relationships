@@ -13,11 +13,11 @@
  */
 import { FONT_STACKS, MODULE_ID, bondType, hexToNumber } from "./constants.mjs";
 import { allBonds, getBond } from "./bonds.mjs";
-import { bondText, t } from "./i18n.mjs";
+import { bondText, statusText, t } from "./i18n.mjs";
 import { circleLayout, extent, forceLayout, gridLayout, groupedLayout, lineageLayout } from "./layout.mjs";
 import { MapRenderer } from "./renderer.mjs";
 import { isMapScene, mapConfig, updateMapConfig } from "./scene.mjs";
-import { groupFor, imageFor, isKeyPerson, statusFor, subtitleFor } from "./system.mjs";
+import { detailLines, groupFor, imageFor, isKeyPerson, statusFor } from "./system.mjs";
 import {
   actorSecrecy,
   baseActor,
@@ -35,6 +35,9 @@ const Z_OVER = 250;
 
 /** Stock token parts the map replaces with its own drawing. */
 const HIDDEN_PARTS = ["nameplate", "bars", "effects", "tooltip", "border", "levelIndicator"];
+
+/** What the map can draw an outline around, and arrange by. */
+const GROUPINGS = new Set(["covenant", "clan", "coterie"]);
 
 /** Options a player may flip for themselves without touching the scene. */
 const LOCAL_KEYS = new Set(["style", "labels", "subtitles", "patterned", "hoverFocus"]);
@@ -286,6 +289,7 @@ class MapController {
       // While a token is being dragged, follow its preview so bonds stretch live.
       const live = token.hasPreview && token._preview?._previewType === "dragging" ? token._preview : token;
       const src = imageFor(doc, actor, config.image);
+      const status = statusFor(actor);
       const node = {
         id: doc.id,
         actorId: actor?.id ?? "",
@@ -294,11 +298,12 @@ class MapController {
         w: token.w,
         h: token.h,
         name: doc.name || actor?.name || "",
-        subtitle: subtitleFor(actor, user),
+        lines: detailLines(actor, user, config),
         img: src,
         texture: this._texture(src),
         fit: config.image === "token" ? "contain" : "cover",
-        status: statusFor(actor),
+        status,
+        statusLabel: status === "active" ? "" : statusText(status),
         key: isKeyPerson(actor),
         secret: marks ? actorSecrecy(actor, doc) : "none",
         selected: token.controlled
@@ -359,11 +364,13 @@ class MapController {
     }
 
     const groups = [];
-    if (config.groups === "covenant" || config.groups === "clan") {
+    if (GROUPINGS.has(config.groups)) {
       const buckets = new Map();
       for (const node of nodes) {
         const actor = game.actors.get(node.actorId);
-        const key = groupFor(actor, config.groups, user) || t("Group.Unaligned");
+        // Most characters belong to no coterie, so they get no outline of their own.
+        const key = groupFor(actor, config.groups, user) || (config.groups === "coterie" ? "" : t("Group.Unaligned"));
+        if (!key) continue;
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(node.id);
       }
@@ -465,7 +472,7 @@ class MapController {
   /**
    * Lay the map out. With two or more tokens selected only those move,
    * around their current centre; otherwise the whole map is arranged.
-   * @param {"network"|"circle"|"covenant"|"clan"|"lineage"} mode
+   * @param {"network"|"circle"|"covenant"|"clan"|"coterie"|"lineage"} mode
    */
   async arrange(mode) {
     if (!this.active || !this.editing) return;
@@ -483,7 +490,7 @@ class MapController {
     const user = game.user;
     const unit = canvas.dimensions.size;
     const cards = config.style === "cards";
-    const groupBy = mode === "clan" ? "clan" : "covenant";
+    const groupBy = GROUPINGS.has(mode) ? mode : "covenant";
     const byActor = new Map();
     const nodes = tokens.map((token) => {
       const actor = baseActor(token.document);
@@ -512,7 +519,7 @@ class MapController {
 
     let positions;
     if (mode === "circle") positions = circleLayout(nodes, { spacing: cards ? Math.max(spacing, width * 0.95) : spacing });
-    else if (mode === "covenant" || mode === "clan") positions = groupedLayout(nodes, { spacing, stretchX });
+    else if (GROUPINGS.has(mode)) positions = groupedLayout(nodes, { spacing, stretchX });
     else if (mode === "lineage") {
       positions = lineageLayout(nodes, edges, { spacingX: cards ? width + unit * 0.9 : unit * 2.8, spacingY: unit * 3 });
     } else positions = forceLayout(nodes, edges, { spacing, stretchX });
@@ -556,7 +563,7 @@ class MapController {
     });
     await this._moveTokens(scene, updates);
 
-    if ((mode === "covenant" || mode === "clan") && config.groups !== mode) await updateMapConfig({ groups: mode }, scene);
+    if (GROUPINGS.has(mode) && config.groups !== mode) await updateMapConfig({ groups: mode }, scene);
     if (!this._fitPending && canvas.scene === scene) {
       // Let the tokens settle into place before framing them.
       setTimeout(() => this.fitView(), 60);

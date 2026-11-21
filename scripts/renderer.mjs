@@ -16,8 +16,9 @@
  *     unit: 100,                       // nominal node size in px, scales strokes and type
  *     labels, subtitles, patterned, backdrop,
  *     bounds: { x, y, w, h },          // area the backdrop covers
- *     nodes:  [{ id, x, y, w, h, name, subtitle, img, texture, fit,
- *                status, key, secret, selected }],
+ *     nodes:  [{ id, x, y, w, h, name, img, texture, fit,
+ *                lines: [{ text, tone: "gold" | "muted" | "soft", caps }],
+ *                status, statusLabel, key, secret, selected }],
  *     edges:  [{ id, a, b, color, strength, directed, category, label, secret, key }],
  *     groups: [{ key, label, nodeIds }],
  *     focus:  { nodes: Set, edges: Set } | null,
@@ -25,7 +26,7 @@
  *   }
  */
 
-import { CATEGORIES, COLORS, FONT_STACKS, STATUSES } from "./constants.mjs";
+import { CATEGORIES, COLORS, FONT_STACKS, hexToNumber, statusDef } from "./constants.mjs";
 import {
   arrowHead,
   dashPolyline,
@@ -42,6 +43,16 @@ import {
 const DIM_NODE = 0.16;
 const DIM_EDGE = 0.07;
 const EDGE_ALPHA = 0.9;
+
+/** Colours of the detail lines under a name. */
+const TONES = { gold: COLORS.gold, muted: COLORS.muted, soft: COLORS.soft };
+
+/** How a status drains a portrait: opacity, saturation shift (-1 is greyscale), tint. */
+const PORTRAIT_LOOKS = {
+  dim: { alpha: 0.72, saturation: -0.5, tint: 0xb4c2d8 },
+  faded: { alpha: 0.42, saturation: -0.65 },
+  grey: { alpha: 0.55, saturation: -1 }
+};
 
 function translateRect(rect, dx, dy) {
   return { x: rect.x + dx, y: rect.y + dy, w: rect.w, h: rect.h };
@@ -300,11 +311,12 @@ export class MapRenderer {
         node.w,
         node.h,
         node.name,
-        model.subtitles ? node.subtitle : "",
+        this._lines(node, model).map((line) => `${line.tone}:${line.caps ? 1 : 0}:${line.text}`).join("\n"),
         node.img,
         texture ? `${texture.width}x${texture.height}` : "none",
         node.fit,
         node.status,
+        node.statusLabel ?? "",
         node.key ? 1 : 0,
         node.secret,
         node.selected ? 1 : 0
@@ -330,9 +342,13 @@ export class MapRenderer {
     }
   }
 
-  /** Portrait art clipped to a circle or rectangle, or initials when there is no image. */
-  _addPortrait(root, node, texture, clip, dead) {
+  /**
+   * Portrait art clipped to a circle or rectangle, or initials when there is no image.
+   * @param {"dim"|"faded"|"grey"} [art]  how the character's status drains the picture
+   */
+  _addPortrait(root, node, texture, clip, art) {
     const PIXI = this.PIXI;
+    const look = PORTRAIT_LOOKS[art] ?? null;
     const box = clip.kind === "circle"
       ? { x: clip.cx - clip.r, y: clip.cy - clip.r, w: clip.r * 2, h: clip.r * 2 }
       : clip;
@@ -341,7 +357,7 @@ export class MapRenderer {
       const label = this._text(initials(node.name), {
         family: this.fonts.display,
         size: box.h * 0.36,
-        fill: dead ? COLORS.faint : COLORS.muted,
+        fill: look ? COLORS.faint : COLORS.muted,
         letterSpacing: box.h * 0.02
       });
       label.anchor.set(0.5);
@@ -370,31 +386,105 @@ export class MapRenderer {
     root.addChild(sprite, mask);
     sprite.mask = mask;
 
-    if (dead) {
-      sprite.alpha = 0.55;
+    if (look) {
+      sprite.alpha = look.alpha;
+      if (look.tint) sprite.tint = look.tint;
       const Filter = PIXI.ColorMatrixFilter ?? PIXI.filters?.ColorMatrixFilter;
       if (Filter) {
-        const grey = new Filter();
-        grey.desaturate();
-        sprite.filters = [grey];
-      } else {
+        const drain = new Filter();
+        drain.saturate(look.saturation);
+        sprite.filters = [drain];
+      } else if (!look.tint) {
         sprite.tint = 0x8a8a8a;
       }
     }
   }
 
-  /** Small round badge carrying a one-letter status glyph. */
+  /** Small round badge carrying a status glyph, in the status's own colour. */
   _statusBadge(root, x, y, r, status) {
-    const glyph = STATUSES[status]?.glyph;
-    if (!glyph) return;
+    const def = statusDef(status);
+    if (!def.glyph) return;
+    const color = hexToNumber(def.color, COLORS.muted);
     const g = new this.PIXI.Graphics();
-    g.lineStyle({ width: Math.max(1, r * 0.16), color: COLORS.muted, alpha: 0.9 });
+    g.lineStyle({ width: Math.max(1, r * 0.18), color, alpha: 1 });
     g.beginFill(COLORS.ink, 0.95).drawCircle(x, y, r).endFill();
     root.addChild(g);
-    const label = this._text(glyph, { family: this.fonts.display, size: r * 1.25, fill: COLORS.text, weight: "700" });
+    const label = this._text(def.glyph, { family: this.fonts.display, size: r * 1.25, fill: color, weight: "700" });
     label.anchor.set(0.5);
     label.position.set(x, y);
     root.addChild(label);
+  }
+
+  /** The detail lines under a name. `subtitle` is the older single-line form. */
+  _lines(node, model) {
+    if (!model.subtitles) return [];
+    if (Array.isArray(node.lines)) return node.lines.filter((line) => line?.text);
+    return node.subtitle ? [{ text: node.subtitle, tone: "muted" }] : [];
+  }
+
+  /** One text object per detail line, coloured by its tone. */
+  _detailTexts(node, model, size, { align = "left", wrap = 0, outline = false, spacing = 0.05 } = {}) {
+    const drained = statusDef(node.status).art === "grey";
+    return this._lines(node, model).map((line) => this._text(line.caps ? String(line.text).toUpperCase() : line.text, {
+      family: this.fonts.mono,
+      size,
+      fill: drained ? COLORS.faint : TONES[line.tone] ?? COLORS.muted,
+      align,
+      wrap,
+      outline,
+      letterSpacing: size * (line.caps ? 0.16 : spacing)
+    }));
+  }
+
+  /**
+   * Boxed caption naming a character's status (MISSING, DESTROYED ...).
+   * It is drawn whether or not the detail lines are switched on.
+   * @returns {{root: object, w: number, h: number} | null}
+   */
+  _statusTag(node, size) {
+    const def = statusDef(node.status);
+    if (!def.glyph) return null;
+    const PIXI = this.PIXI;
+    const color = hexToNumber(def.color, COLORS.muted);
+    const spacing = size * 0.2;
+    const text = this._text(String(node.statusLabel || def.label).toUpperCase(), {
+      family: this.fonts.mono,
+      size,
+      fill: color,
+      letterSpacing: spacing
+    });
+    const padX = size * 0.6;
+    const padY = size * 0.22;
+    const w = text.width - spacing + padX * 2;
+    const h = text.height + padY * 2;
+    const g = new PIXI.Graphics();
+    g.lineStyle({ width: Math.max(1, size * 0.09), color, alpha: 0.8, alignment: 0 });
+    g.beginFill(COLORS.ink, 0.92).drawRect(0, 0, w, h).endFill();
+    g.lineStyle(0);
+    text.position.set(padX, padY);
+    const root = new PIXI.Container();
+    root.addChild(g, text);
+    return { root, w, h };
+  }
+
+  /** A broken ring: the character's whereabouts are unknown. */
+  _dashedCircle(g, cx, cy, radius, width, color) {
+    const steps = 96;
+    const points = [];
+    for (let i = 0; i <= steps; i++) {
+      const angle = -Math.PI / 2 + (i / steps) * Math.PI * 2;
+      points.push({ x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius });
+    }
+    const segment = polylineLength(points) / 14;
+    for (const piece of dashPolyline(points, [segment * 0.56, segment * 0.44])) this._stroke(g, piece, width, color, 1);
+    g.lineStyle(0);
+  }
+
+  /** A stroke through the portrait: the character is gone for good. */
+  _strike(g, from, to, width, color) {
+    this._stroke(g, [from, to], width * 2.6, COLORS.ink, 0.7);
+    this._stroke(g, [from, to], width, color, 0.95);
+    g.lineStyle(0);
   }
 
   _buildDisc(view, node, model, texture) {
@@ -404,19 +494,29 @@ export class MapRenderer {
     const cx = node.w / 2;
     const cy = node.h / 2;
     const r = size / 2;
-    const dead = node.status === "dead";
+    const status = statusDef(node.status);
+    const drained = status.art === "grey";
     const ringWidth = Math.max(2, size * 0.035);
-    const ringColor = dead ? COLORS.dead : node.key ? COLORS.gold : COLORS.blood;
+    const ringColor = status.ring === "grey" ? COLORS.dead : node.key ? COLORS.gold : COLORS.blood;
 
     const g = new PIXI.Graphics();
     g.beginFill(COLORS.disc, 1).drawCircle(cx, cy, r).endFill();
     root.addChild(g);
 
-    this._addPortrait(root, node, texture, { kind: "circle", cx, cy, r: r - ringWidth * 0.5 }, dead);
+    this._addPortrait(root, node, texture, { kind: "circle", cx, cy, r: r - ringWidth * 0.5 }, status.art);
 
     const ring = new PIXI.Graphics();
-    ring.lineStyle({ width: ringWidth, color: ringColor, alpha: 1 });
-    ring.drawCircle(cx, cy, r - ringWidth / 2);
+    if (status.struck) {
+      // Drawn before the ring so its ends tuck underneath.
+      const d = (r - ringWidth * 0.5) * Math.SQRT1_2;
+      this._strike(ring, { x: cx - d, y: cy + d }, { x: cx + d, y: cy - d }, size * 0.028, hexToNumber(status.color, COLORS.dead));
+    }
+    if (status.ring === "dashed") {
+      this._dashedCircle(ring, cx, cy, r - ringWidth / 2, ringWidth, ringColor);
+    } else {
+      ring.lineStyle({ width: ringWidth, color: ringColor, alpha: 1 });
+      ring.drawCircle(cx, cy, r - ringWidth / 2);
+    }
     if (node.selected) {
       ring.lineStyle({ width: Math.max(1.5, ringWidth * 0.55), color: COLORS.gold, alpha: 1 });
       ring.drawCircle(cx, cy, r + ringWidth * 1.1);
@@ -433,7 +533,7 @@ export class MapRenderer {
     const name = this._text(node.name, {
       family: this.fonts.display,
       size: nameSize,
-      fill: dead ? COLORS.dead : COLORS.text,
+      fill: drained ? COLORS.dead : status.gone ? COLORS.muted : COLORS.text,
       align: "center",
       wrap: size * 2.4,
       outline: true,
@@ -443,24 +543,27 @@ export class MapRenderer {
     name.position.set(cx, node.h + size * 0.07);
     root.addChild(name);
 
+    // Under the name: the status tag, then rank, clan and covenant, coterie.
     let bottom = name.y + name.height;
     let halfWidth = name.width / 2;
-    if (model.subtitles && node.subtitle) {
-      const subSize = size * 0.105;
-      const sub = this._text(node.subtitle, {
-        family: this.fonts.mono,
-        size: subSize,
-        fill: COLORS.muted,
-        align: "center",
-        wrap: size * 2.6,
-        outline: true,
-        letterSpacing: subSize * 0.06
-      });
-      sub.anchor.set(0.5, 0);
-      sub.position.set(cx, bottom - nameSize * 0.12);
-      root.addChild(sub);
-      bottom = sub.y + sub.height;
-      halfWidth = Math.max(halfWidth, sub.width / 2);
+    const subSize = size * 0.105;
+    const tag = this._statusTag(node, subSize * 1.08);
+    if (tag) {
+      tag.root.position.set(cx - tag.w / 2, bottom + subSize * 0.05);
+      root.addChild(tag.root);
+      bottom = tag.root.y + tag.h + subSize * 0.3;
+      halfWidth = Math.max(halfWidth, tag.w / 2);
+    }
+    // Text boxes carry generous leading, so each line is pulled up a little.
+    let lift = tag ? 0 : nameSize * 0.12;
+    const details = this._detailTexts(node, model, subSize, { align: "center", wrap: size * 2.6, outline: true, spacing: 0.06 });
+    for (const text of details) {
+      text.anchor.set(0.5, 0);
+      text.position.set(cx, bottom - lift);
+      root.addChild(text);
+      bottom = text.y + text.height;
+      halfWidth = Math.max(halfWidth, text.width / 2);
+      lift = subSize * 0.3;
     }
 
     view.localShape = { kind: "circle", cx, cy, r: r + (node.selected ? ringWidth * 1.6 : 0) };
@@ -473,7 +576,8 @@ export class MapRenderer {
     const PIXI = this.PIXI;
     const root = view.root;
     const size = node.h;
-    const dead = node.status === "dead";
+    const status = statusDef(node.status);
+    const drained = status.art === "grey";
     const pad = size * 0.2;
     const gap = size * 0.26;
     const padRight = size * 0.36;
@@ -483,24 +587,22 @@ export class MapRenderer {
     const name = this._text(String(node.name ?? "").toUpperCase(), {
       family: this.fonts.display,
       size: nameSize,
-      fill: dead ? COLORS.dead : COLORS.text,
+      fill: drained ? COLORS.dead : status.gone ? COLORS.muted : COLORS.text,
       letterSpacing: nameSize * 0.05,
       wrap: size * 5
     });
-    let sub = null;
-    if (model.subtitles && node.subtitle) {
-      const subSize = size * 0.19;
-      sub = this._text(node.subtitle, {
-        family: this.fonts.mono,
-        size: subSize,
-        fill: dead ? COLORS.faint : COLORS.muted,
-        letterSpacing: subSize * 0.04,
-        wrap: size * 5
-      });
-    }
-    const textWidth = Math.max(name.width, sub?.width ?? 0);
+
+    // Beside the portrait: name, status tag, then rank, clan and covenant, coterie.
+    const subSize = size * 0.19;
     const between = size * 0.03;
-    const blockHeight = name.height + (sub ? sub.height + between : 0);
+    const rows = [{ item: name, w: name.width, h: name.height, margin: 0 }];
+    const tag = this._statusTag(node, subSize * 0.82);
+    if (tag) rows.push({ item: tag.root, w: tag.w, h: tag.h, margin: size * 0.035 });
+    for (const text of this._detailTexts(node, model, subSize, { wrap: size * 5, spacing: 0.04 })) {
+      rows.push({ item: text, w: text.width, h: text.height, margin: 0 });
+    }
+    const textWidth = Math.max(...rows.map((row) => row.w));
+    const blockHeight = rows.reduce((sum, row) => sum + row.h + row.margin * 2, 0) + between * (rows.length - 1);
     const cardWidth = pad + node.w + gap + textWidth + padRight;
     const cardHeight = Math.max(node.h + pad * 2, blockHeight + pad * 2);
     const card = { x: -pad, y: node.h / 2 - cardHeight / 2, w: cardWidth, h: cardHeight };
@@ -520,14 +622,26 @@ export class MapRenderer {
     g.lineStyle(0);
     root.addChild(g);
 
-    this._addPortrait(root, node, texture, { kind: "rect", x: 0, y: 0, w: node.w, h: node.h }, dead);
+    this._addPortrait(root, node, texture, { kind: "rect", x: 0, y: 0, w: node.w, h: node.h }, status.art);
+    if (status.struck) {
+      const strike = new PIXI.Graphics();
+      const inset = size * 0.1;
+      this._strike(
+        strike,
+        { x: inset, y: node.h - inset },
+        { x: node.w - inset, y: inset },
+        size * 0.03,
+        hexToNumber(status.color, COLORS.dead)
+      );
+      root.addChild(strike);
+    }
 
     const textX = node.w + gap;
-    name.position.set(textX, node.h / 2 - blockHeight / 2);
-    root.addChild(name);
-    if (sub) {
-      sub.position.set(textX, name.y + name.height + between);
-      root.addChild(sub);
+    let rowY = node.h / 2 - blockHeight / 2;
+    for (const row of rows) {
+      row.item.position.set(textX, rowY + row.margin);
+      root.addChild(row.item);
+      rowY += row.h + row.margin * 2 + between;
     }
 
     const marks = new PIXI.Graphics();

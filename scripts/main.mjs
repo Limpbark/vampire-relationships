@@ -2,12 +2,13 @@
  * Vampire Relationships — module entry point.
  * Wires Foundry's hooks to the map controller and the interface.
  */
-import { BOND_TYPES, MODULE_ID } from "./constants.mjs";
+import { BOND_TYPES, MODULE_ID, STATUSES } from "./constants.mjs";
 import { allBonds, bondsOf, deleteBond, getBond, invalidateBonds, pruneBondsTo, saveBond } from "./bonds.mjs";
 import { controller, installVisibilityPatch } from "./controller.mjs";
 import { t } from "./i18n.mjs";
 import { createMapScene, isMapScene, mapConfig, mapScenes, prepareMapToken, setSceneAsMap } from "./scene.mjs";
 import { promptCreateMap, registerSettings } from "./settings.mjs";
+import { setStatus, statusFor } from "./system.mjs";
 import { baseActor, canSeeActor } from "./visibility.mjs";
 import { BondEditor, openBondEditor } from "./apps/bond-editor.mjs";
 import { CastPicker, openCastPicker } from "./apps/cast-picker.mjs";
@@ -64,6 +65,7 @@ Hooks.once("ready", () => {
     module.api = {
       controller,
       BOND_TYPES,
+      STATUSES,
       createMapScene,
       promptCreateMap,
       setSceneAsMap,
@@ -73,6 +75,10 @@ Hooks.once("ready", () => {
       openCastPicker,
       openDossier: (actorId) => dossier.show(actorId),
       bonds: { all: allBonds, get: getBond, of: bondsOf, save: saveBond, delete: deleteBond },
+      status: {
+        get: (actorId) => statusFor(game.actors.get(actorId)),
+        set: (actorId, status) => (game.user.isGM ? setStatus(game.actors.get(actorId), status) : false)
+      },
       apps: { BondEditor, CastPicker, Dossier }
     };
   }

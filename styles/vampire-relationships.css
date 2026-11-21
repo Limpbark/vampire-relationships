@@ -1088,12 +1088,17 @@
   letter-spacing: 0.06em;
 }
 
-.vr-dossier .vr-portrait.vr-status-dead img {
+.vr-dossier .vr-portrait.vr-art-grey img {
   filter: grayscale(1) brightness(0.7);
 }
 
-.vr-dossier .vr-portrait.vr-status-torpor img {
-  filter: saturate(0.4) brightness(0.8);
+.vr-dossier .vr-portrait.vr-art-faded img {
+  filter: saturate(0.35) brightness(0.75);
+  opacity: 0.55;
+}
+
+.vr-dossier .vr-portrait.vr-art-dim img {
+  filter: saturate(0.5) brightness(0.8);
 }
 
 .vr-dossier .vr-dossier-id {
@@ -1140,6 +1145,25 @@
   color: var(--vr-muted);
 }
 
+.vr-app .vr-tag-soft {
+  color: #cbc6bc;
+}
+
+/* A character's status, boxed like the tag drawn on the map. */
+.vr-app .vr-status-tag {
+  align-self: flex-start;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--vr-status, var(--vr-muted)) 80%, transparent);
+  background: var(--vr-ink);
+  color: var(--vr-status, var(--vr-muted));
+  letter-spacing: 0.2em;
+}
+
+.vr-app .vr-status-tag b {
+  font: 700 10px/1 var(--vr-display);
+  letter-spacing: 0;
+}
+
 .vr-dossier .vr-dossier-tools {
   display: flex;
   gap: 6px;
@@ -1173,14 +1197,53 @@
   width: 30px;
 }
 
-.vr-dossier .vr-status-row {
-  justify-content: space-between;
+.vr-dossier .vr-status-pick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
 }
 
-.vr-dossier .vr-status-row select {
-  width: 150px;
-  height: 28px;
-  font-size: 11px;
+.vr-dossier .vr-status-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  height: 26px;
+  margin: 0;
+  padding: 0 4px;
+  border: 1px solid var(--vr-line-strong);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--vr-muted);
+  font: 400 8.5px/1 var(--vr-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.vr-dossier .vr-status-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vr-dossier .vr-status-btn b {
+  flex: none;
+  color: var(--vr-status);
+  font: 700 11px/1 var(--vr-display);
+}
+
+.vr-dossier .vr-status-btn:hover {
+  border-color: var(--vr-status);
+  color: var(--vr-text);
+}
+
+.vr-dossier .vr-status-btn.vr-on {
+  border-color: var(--vr-status);
+  background: color-mix(in srgb, var(--vr-status) 16%, transparent);
+  color: var(--vr-status);
 }
 
 .vr-dossier .vr-counts {
@@ -1276,6 +1339,19 @@
   color: var(--vr-faint);
   font: 400 12px/1 var(--vr-display);
   font-style: normal;
+}
+
+.vr-app .vr-thumb.vr-gone img {
+  filter: grayscale(1) brightness(0.7);
+}
+
+.vr-dossier .vr-tie-status {
+  margin-left: 7px;
+  color: var(--vr-status, var(--vr-muted));
+  font: 400 8.5px/1 var(--vr-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .vr-app .vr-thumb.vr-off-map {

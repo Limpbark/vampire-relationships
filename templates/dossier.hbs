@@ -3,13 +3,15 @@
   <p class="vr-hint vr-pad">{{localize "VR.Dossier.Missing"}}</p>
 {{else}}
   <header class="vr-dossier-head">
-    <div class="vr-portrait {{#if status}}vr-status-{{status}}{{/if}}">
+    <div class="vr-portrait {{#if art}}vr-art-{{art}}{{/if}}">
       {{#if img}}<img src="{{img}}" alt="">{{else}}<span>{{initials}}</span>{{/if}}
     </div>
     <div class="vr-dossier-id">
-      {{#if subtitle}}<p class="vr-overline">{{subtitle}}</p>{{/if}}
+      {{#if nature}}<p class="vr-overline">{{nature}}</p>{{/if}}
       <h2>{{name}}</h2>
-      {{#if statusLabel}}<p class="vr-tag vr-tag-muted"><i class="fa-solid fa-moon"></i> {{statusLabel}}</p>{{/if}}
+      {{#if statusLabel}}<p class="vr-tag vr-status-tag" style="--vr-status: {{statusColor}}"><b>{{statusGlyph}}</b> {{statusLabel}}</p>{{/if}}
+      {{#if rank}}<p class="vr-tag vr-tag-gold" data-tooltip="{{localize "VR.Dossier.Rank"}}"><i class="fa-solid fa-crown"></i> {{rank}}</p>{{/if}}
+      {{#if coterie}}<p class="vr-tag vr-tag-soft" data-tooltip="{{localize "VR.Dossier.Coterie"}}"><i class="fa-solid fa-people-group"></i> {{coterie}}</p>{{/if}}
       {{#if audience}}
         <p class="vr-tag {{#if audience.open}}vr-tag-open{{else}}vr-tag-gold{{/if}}">
           <i class="fa-solid {{#if audience.open}}fa-eye{{else}}fa-eye-slash{{/if}}"></i> {{audience.caption}}
@@ -40,12 +42,14 @@
       <button type="button" class="vr-btn {{#if audience.hidden}}vr-on{{/if}}" data-action="conceal"><i class="fa-solid fa-eye-slash"></i> {{localize "VR.Visibility.Storyteller"}}</button>
       <button type="button" class="vr-btn" data-action="ownership" data-tooltip="{{localize "VR.Dossier.OwnershipHint"}}"><i class="fa-solid fa-user-lock"></i></button>
     </div>
-    <label class="vr-inline vr-status-row">
-      <span class="vr-overline">{{localize "VR.Dossier.Status"}}</span>
-      <select data-status>
-        {{#each statuses}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </label>
+    <p class="vr-overline">{{localize "VR.Dossier.Status"}}</p>
+    <div class="vr-status-pick">
+      {{#each statuses}}
+      <button type="button" class="vr-status-btn {{#if selected}}vr-on{{/if}}" data-action="setStatus" data-status="{{id}}" style="--vr-status: {{color}}">
+        {{#if glyph}}<b>{{glyph}}</b>{{/if}}<span>{{label}}</span>
+      </button>
+      {{/each}}
+    </div>
   </section>
   {{/if}}
 
@@ -66,11 +70,11 @@
       {{#each ties}}
       <article class="vr-tie" data-bond-id="{{bondId}}" data-actor-id="{{otherId}}" style="--vr-bond: {{color}}">
         <button type="button" class="vr-tie-main" data-action="visit">
-          <span class="vr-thumb {{#unless onMap}}vr-off-map{{/unless}}">
+          <span class="vr-thumb {{#unless onMap}}vr-off-map{{/unless}} {{#if otherGone}}vr-gone{{/if}}">
             {{#if otherImg}}<img src="{{otherImg}}" alt="">{{else}}<em>{{otherInitials}}</em>{{/if}}
           </span>
           <span class="vr-tie-text">
-            <b>{{otherName}}</b>
+            <b>{{otherName}}{{#if otherStatus}}<em class="vr-tie-status" style="--vr-status: {{otherStatusColor}}">{{otherStatus}}</em>{{/if}}</b>
             <span class="vr-tie-role">
               <i class="vr-square"></i>{{role}}{{#if label}} <q>{{label}}</q>{{/if}}
               {{#if arrow}}<i class="fa-solid {{arrow}} vr-tie-arrow"></i>{{/if}}

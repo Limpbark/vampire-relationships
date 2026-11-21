@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0
+
+- Rank, bloodline and coterie are shown under each name, read from the character
+  sheet: rank in gold, the bloodline in brackets after the clan, the coterie on
+  its own line. Each can be switched off under Appearance.
+- Coteries can be outlined (Appearance → Group outlines → By coterie) and
+  gathered together (Arrange → Coteries).
+- Statuses reworked for characters who are gone: Torpor, Missing, Left the City,
+  Dead and Destroyed. Each has its own colour and shows as a boxed caption under
+  the name, a badge, a drained portrait and, for the missing, a broken ring or,
+  for the dead, a stroke through the portrait.
+- Status is set with one click from the dossier, which also shows the status of
+  everyone a character is tied to.
+- A vampire whose sheet is marked dead now reads as Destroyed; other characters
+  read as Dead. A character flagged "Final Death" in 0.1.0 now reads "Dead":
+  re-flag them as Destroyed if that is what was meant.
+- The dossier lists rank and coterie.
+- API: `status.get(actorId)` and `status.set(actorId, status)`.
+
 ## 0.1.0
 
 First release.
