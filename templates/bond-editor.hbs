@@ -1,0 +1,158 @@
+{{!-- A template part must render exactly one root element. --}}
+<div class="vr-editor" data-type-data="{{typeData}}">
+<div class="vr-sheet">
+
+  <section class="vr-section">
+    <h3>{{localize "VR.Bond.WhoAndWhom"}}</h3>
+    <div class="vr-pair">
+      <div class="vr-field">
+        <label for="vr-bond-from"><span class="vr-pip"></span><span data-role="from">{{roles.from}}</span></label>
+        <select id="vr-bond-from" name="from">
+          <option value="">{{localize "VR.Bond.Select"}}</option>
+          {{#if from.here.length}}
+          <optgroup label="{{localize "VR.Bond.OnThisMap"}}">
+            {{#each from.here}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if hint}} ({{hint}}){{/if}}</option>{{/each}}
+          </optgroup>
+          {{/if}}
+          {{#if from.elsewhere.length}}
+          <optgroup label="{{localize "VR.Bond.Elsewhere"}}">
+            {{#each from.elsewhere}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if hint}} ({{hint}}){{/if}}</option>{{/each}}
+          </optgroup>
+          {{/if}}
+        </select>
+      </div>
+      <button type="button" class="vr-icon-btn" data-action="swap" data-tooltip="{{localize "VR.Bond.Swap"}}" aria-label="{{localize "VR.Bond.Swap"}}">
+        <i class="fa-solid fa-right-left"></i>
+      </button>
+      <div class="vr-field">
+        <label for="vr-bond-to"><span class="vr-pip"></span><span data-role="to">{{roles.to}}</span></label>
+        <select id="vr-bond-to" name="to">
+          <option value="">{{localize "VR.Bond.Select"}}</option>
+          {{#if to.here.length}}
+          <optgroup label="{{localize "VR.Bond.OnThisMap"}}">
+            {{#each to.here}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if hint}} ({{hint}}){{/if}}</option>{{/each}}
+          </optgroup>
+          {{/if}}
+          {{#if to.elsewhere.length}}
+          <optgroup label="{{localize "VR.Bond.Elsewhere"}}">
+            {{#each to.elsewhere}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if hint}} ({{hint}}){{/if}}</option>{{/each}}
+          </optgroup>
+          {{/if}}
+        </select>
+      </div>
+    </div>
+    <label class="vr-check">
+      <input type="checkbox" name="directed" {{#if bond.directed}}checked{{/if}}>
+      <span><b>{{localize "VR.Bond.ShowArrow"}}</b><small>{{localize "VR.Bond.ShowArrowHint"}}</small></span>
+    </label>
+  </section>
+
+  <section class="vr-section">
+    <h3>{{localize "VR.Bond.TheBond"}}</h3>
+    <div class="vr-columns">
+      <div class="vr-field">
+        <label for="vr-bond-type">{{localize "VR.Bond.Type"}}</label>
+        <select id="vr-bond-type" name="type">
+          {{#each categories}}
+          <optgroup label="{{label}}">
+            {{#each types}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+          </optgroup>
+          {{/each}}
+        </select>
+        <small>{{localize "VR.Bond.TypeHint"}}</small>
+      </div>
+      <div class="vr-field">
+        <label for="vr-bond-label">{{localize "VR.Bond.Label"}}</label>
+        <input id="vr-bond-label" type="text" name="label" value="{{bond.label}}" maxlength="40" placeholder="{{localize "VR.Bond.LabelPlaceholder"}}">
+        <small>{{localize "VR.Bond.LabelHint"}}</small>
+      </div>
+    </div>
+    <div class="vr-field vr-color-row" data-custom {{#unless isCustom}}hidden{{/unless}}>
+      <label for="vr-bond-color">{{localize "VR.Bond.Color"}}</label>
+      <input id="vr-bond-color" type="color" name="color" value="{{color}}">
+    </div>
+  </section>
+
+  <section class="vr-section">
+    <h3>{{localize "VR.Bond.WhoSeesIt"}}</h3>
+    <div class="vr-choices">
+      <label class="vr-choice">
+        <input type="radio" name="visibility" value="everyone" {{#if visibility.everyone}}checked{{/if}}>
+        <i class="fa-solid fa-eye"></i>
+        <span><b>{{localize "VR.Visibility.Everyone"}}</b><small>{{localize "VR.Visibility.EveryoneHint"}}</small></span>
+      </label>
+      <label class="vr-choice">
+        <input type="radio" name="visibility" value="gm" {{#if visibility.gm}}checked{{/if}}>
+        <i class="fa-solid fa-eye-slash"></i>
+        <span><b>{{localize "VR.Visibility.Storyteller"}}</b><small>{{localize "VR.Visibility.StorytellerHint"}}</small></span>
+      </label>
+      <label class="vr-choice">
+        <input type="radio" name="visibility" value="specific" {{#if visibility.specific}}checked{{/if}}>
+        <i class="fa-solid fa-user-group"></i>
+        <span><b>{{localize "VR.Visibility.Specific"}}</b><small>{{localize "VR.Visibility.SpecificHint"}}</small></span>
+      </label>
+    </div>
+    <div class="vr-users" data-users hidden>
+      {{#if hasUsers}}
+        {{#each users}}
+        <label class="vr-user">
+          <input type="checkbox" name="users" value="{{id}}" {{#if checked}}checked{{/if}}>
+          <span class="vr-dot" style="background: {{color}}"></span>
+          <span>{{name}}{{#if character}} <small>{{character}}</small>{{/if}}</span>
+        </label>
+        {{/each}}
+      {{else}}
+        <p class="vr-hint">{{localize "VR.Visibility.NoPlayers"}}</p>
+      {{/if}}
+    </div>
+    <p class="vr-hint">{{localize "VR.Visibility.Rule"}}</p>
+  </section>
+
+  <section class="vr-section">
+    <h3>{{localize "VR.Bond.Notes"}}</h3>
+    <div class="vr-field">
+      <label for="vr-bond-notes">{{localize "VR.Bond.PublicNotes"}}</label>
+      <textarea id="vr-bond-notes" name="notes" rows="3" placeholder="{{localize "VR.Bond.PublicNotesPlaceholder"}}">{{bond.notes}}</textarea>
+      <small>{{localize "VR.Bond.PublicNotesHint"}}</small>
+    </div>
+    <details class="vr-fold" {{#if hasGmNotes}}open{{/if}}>
+      <summary>{{localize "VR.Bond.StorytellerOnly"}}</summary>
+      <div class="vr-field">
+        <label for="vr-bond-gm-notes">{{localize "VR.Bond.PrivateNotes"}}</label>
+        <textarea id="vr-bond-gm-notes" name="gmNotes" rows="3" placeholder="{{localize "VR.Bond.PrivateNotesPlaceholder"}}">{{bond.gmNotes}}</textarea>
+        <small>{{localize "VR.Bond.PrivateNotesHint"}}</small>
+      </div>
+    </details>
+    <details class="vr-fold" open>
+      <summary>{{localize "VR.Bond.More"}}</summary>
+      <div class="vr-field">
+        <label>{{localize "VR.Bond.Strength"}}</label>
+        <div class="vr-strength">
+          {{#each strengths}}
+          <label>
+            <input type="radio" name="strength" value="{{value}}" {{#if checked}}checked{{/if}}>
+            <span class="vr-diamond"></span>
+            <em>{{value}}</em>
+          </label>
+          {{/each}}
+        </div>
+        <div class="vr-strength-ends"><span>{{localize "VR.Bond.Faint"}}</span><span>{{localize "VR.Bond.Unbreakable"}}</span></div>
+      </div>
+      <label class="vr-check">
+        <input type="checkbox" name="key" {{#if bond.key}}checked{{/if}}>
+        <span><b>{{localize "VR.Bond.KeyTie"}}</b><small>{{localize "VR.Bond.KeyTieHint"}}</small></span>
+      </label>
+    </details>
+  </section>
+
+</div>
+
+<footer class="vr-footer">
+  {{#unless isNew}}
+  <button type="button" class="vr-btn vr-danger" data-action="remove"><i class="fa-solid fa-trash"></i> {{localize "VR.Bond.Delete"}}</button>
+  {{/unless}}
+  <span class="vr-spacer"></span>
+  <button type="button" class="vr-btn" data-action="cancel">{{localize "VR.Common.Cancel"}}</button>
+  <button type="submit" class="vr-btn vr-cta"><i class="fa-solid fa-link"></i> {{#if isNew}}{{localize "VR.Bond.Bind"}}{{else}}{{localize "VR.Common.Save"}}{{/if}}</button>
+</footer>
+</div>

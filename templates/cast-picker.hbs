@@ -1,0 +1,36 @@
+<div class="vr-cast">
+  <div class="vr-cast-top">
+    <label class="vr-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="search" data-search placeholder="{{localize "VR.Toolbar.Search"}}" autocomplete="off" spellcheck="false">
+    </label>
+    <div class="vr-inline">
+      <button type="button" class="vr-link" data-action="all">{{localize "VR.Cast.All"}}</button>
+      <button type="button" class="vr-link" data-action="none">{{localize "VR.Cast.None"}}</button>
+    </div>
+  </div>
+
+  <div class="vr-cast-list">
+    {{#if empty}}
+      <p class="vr-hint vr-pad">{{localize "VR.Cast.Empty"}}</p>
+    {{/if}}
+    {{#each actors}}
+    <label class="vr-cast-row" data-search="{{search}}">
+      <input type="checkbox" name="actors" value="{{id}}">
+      <span class="vr-thumb">{{#if img}}<img src="{{img}}" alt="">{{else}}<em>{{initial}}</em>{{/if}}</span>
+      <span class="vr-cast-text">
+        <b>{{name}}</b>
+        <small>{{#if subtitle}}{{subtitle}}{{else}}{{folder}}{{/if}}</small>
+      </span>
+      {{#if hasTies}}<span class="vr-cast-ties" data-tooltip="{{localize "VR.Cast.TiesHint"}}"><i class="fa-solid fa-link"></i> {{ties}}</span>{{/if}}
+    </label>
+    {{/each}}
+  </div>
+
+  <footer class="vr-footer">
+    <span class="vr-overline" data-count></span>
+    <span class="vr-spacer"></span>
+    <button type="button" class="vr-btn" data-action="cancel">{{localize "VR.Common.Cancel"}}</button>
+    <button type="submit" class="vr-btn vr-cta"><i class="fa-solid fa-user-plus"></i> {{localize "VR.Cast.Add"}}</button>
+  </footer>
+</div>

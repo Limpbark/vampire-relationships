@@ -1,0 +1,61 @@
+name: Release
+
+# Push a tag such as v0.2.0 to publish that version.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Resolve version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Check scripts parse
+        run: |
+          for file in $(find scripts -name '*.mjs'); do node --check "$file"; done
+
+      - name: Run tests
+        run: node dev/test.mjs
+
+      # The manifest keeps pointing at the newest release (so Foundry finds
+      # updates), while the download is pinned to this exact version.
+      - name: Stamp version into module.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const file = 'module.json';
+            const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const base = 'https://github.com/' + process.env.REPO;
+            json.version = process.env.VERSION;
+            json.manifest = base + '/releases/latest/download/module.json';
+            json.download = base + '/releases/download/' + process.env.TAG + '/module.zip';
+            fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
+          "
+
+      - name: Build module.zip
+        run: |
+          zip -r module.zip module.json LICENSE README.md CHANGELOG.md lang scripts styles templates
+          if [ -d fonts ]; then zip -r module.zip fonts; fi
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "Release ${GITHUB_REF_NAME}. See CHANGELOG.md for what changed." \
+            module.json module.zip

@@ -1,0 +1,32 @@
+{
+  "id": "vampire-relationships",
+  "title": "Vampire Relationships",
+  "description": "<p>A relationship map for vampire chronicles, drawn on its own scene. Characters are tokens shown as portraits; bonds between them (sire and childe, regnant and ghoul, allies, rivals, debts...) are coloured, labelled lines.</p><p>Who sees what follows Foundry ownership: a player only meets the characters they have ownership of, and each bond has its own audience. Built for the Vampire the Requiem 2E system, and usable with any other.</p>",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.370"
+  },
+  "authors": [
+    {
+      "name": "Limpbark",
+      "url": "https://github.com/Limpbark"
+    }
+  ],
+  "esmodules": ["scripts/main.mjs"],
+  "styles": ["styles/vampire-relationships.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "url": "https://github.com/Limpbark/vampire-relationships",
+  "manifest": "https://github.com/Limpbark/vampire-relationships/releases/latest/download/module.json",
+  "download": "https://github.com/Limpbark/vampire-relationships/releases/latest/download/module.zip",
+  "changelog": "https://github.com/Limpbark/vampire-relationships/blob/main/CHANGELOG.md",
+  "readme": "https://github.com/Limpbark/vampire-relationships/blob/main/README.md",
+  "bugs": "https://github.com/Limpbark/vampire-relationships/issues",
+  "license": "MIT"
+}

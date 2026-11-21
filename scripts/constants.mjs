@@ -1,0 +1,150 @@
+/**
+ * Vampire Relationships — shared constants.
+ * This file is deliberately free of Foundry API calls so it can be used by the
+ * standalone renderer preview (dev/) as well as by the module itself.
+ */
+
+export const MODULE_ID = "vampire-relationships";
+export const MODULE_TITLE = "Vampire Relationships";
+
+/** Keys used under `flags["vampire-relationships"]`. */
+export const FLAG = {
+  /** Scene: marks a scene as a relationship map. */
+  IS_MAP: "isMap",
+  /** Scene: appearance / behaviour config for that map. */
+  CONFIG: "config",
+  /** Actor: record of outgoing bonds, keyed by bond id. */
+  BONDS: "bonds",
+  /** Actor: narrative status shown on the map (active / torpor / missing / dead). */
+  STATUS: "status",
+  /** Actor: marks one of the chronicle's key people. */
+  KEY: "key"
+};
+
+/** Foundry ownership levels, mirrored here so pure code needs no CONST global. */
+export const OWNERSHIP = { INHERIT: -1, NONE: 0, LIMITED: 1, OBSERVER: 2, OWNER: 3 };
+
+/** Colour tokens (numbers for PIXI, strings for CSS live in the stylesheet). */
+export const COLORS = {
+  ink: 0x050505,
+  panel: 0x0a0a0a,
+  card: 0x000000,
+  cardBorder: 0x6b7280,
+  disc: 0x161618,
+  text: 0xf0eeea,
+  muted: 0x9f9fa9,
+  faint: 0x52525b,
+  gold: 0xc5a059,
+  blood: 0x991b1b,
+  bloodBright: 0xdc2626,
+  dead: 0x6b7280
+};
+
+/** Default per-scene map configuration. */
+export const DEFAULT_CONFIG = Object.freeze({
+  /** "constellation" (round portraits) or "cards" (portrait + name plate). */
+  style: "constellation",
+  /** "portrait" (Actor image) or "token" (Token image). */
+  image: "portrait",
+  /** Show the label chip on each bond. */
+  labels: true,
+  /** Show clan / covenant under each name. */
+  subtitles: true,
+  /** Distinguish bond categories by dash pattern as well as colour. */
+  patterned: false,
+  /** Draw an outline around each group: "none" | "covenant" | "clan". */
+  groups: "none",
+  /** A stray drag moves nothing. */
+  lockLayout: false,
+  /** Dim everything except the hovered character's ties. */
+  hoverFocus: true,
+  /** Faint dot grid behind the map. */
+  backdrop: true
+});
+
+/**
+ * Bond categories. The dash pattern is only applied when "patterned lines" is on.
+ * Pattern values are multiples of the stroke width: [dash, gap, dash, gap ...].
+ */
+export const CATEGORIES = Object.freeze({
+  blood: { label: "Blood", color: "#dc2626", pattern: null },
+  loyalty: { label: "Loyalty", color: "#c5a059", pattern: [7, 4] },
+  feeling: { label: "Feeling", color: "#f472b6", pattern: [1.2, 3.2] },
+  other: { label: "Other", color: "#9ca3af", pattern: [7, 3.5, 1.2, 3.5] }
+});
+
+/**
+ * The bond catalogue, phrased for Vampire: The Requiem.
+ *  - directed: whether the arrow is on by default
+ *  - roles:    what each end is called, [from, to]
+ *  - lineage:  used by the Lineage arrangement to build trees
+ */
+export const BOND_TYPES = Object.freeze({
+  // ── Blood ────────────────────────────────────────────────────────────────
+  sire: { label: "Sire / Childe", short: "Sire", category: "blood", color: "#dc2626", directed: true, roles: ["Sire", "Childe"], lineage: 1 },
+  regnant: { label: "Regnant / Ghoul", short: "Regnant", category: "blood", color: "#f59e0b", directed: true, roles: ["Regnant", "Ghoul"], lineage: 2 },
+  vinculum: { label: "Vinculum", short: "Vinculum", category: "blood", color: "#991b1b", directed: true, roles: ["Regnant", "Thrall"] },
+  broodmate: { label: "Broodmate", short: "Broodmate", category: "blood", color: "#7c3aed", directed: false, roles: ["Broodmate", "Broodmate"] },
+  avus: { label: "Avus / Initiate", short: "Avus", category: "blood", color: "#a855f7", directed: true, roles: ["Avus", "Initiate"] },
+  diablerie: { label: "Diablerie", short: "Diablerie", category: "blood", color: "#9d174d", directed: true, roles: ["Diablerist", "Victim"] },
+  herd: { label: "Herd / Vessel", short: "Herd", category: "blood", color: "#be123c", directed: true, roles: ["Feeds from", "Vessel"] },
+
+  // ── Loyalty ──────────────────────────────────────────────────────────────
+  ally: { label: "Ally", short: "Ally", category: "loyalty", color: "#86efac", directed: false, roles: ["Ally", "Ally"] },
+  coterie: { label: "Coterie", short: "Coterie", category: "loyalty", color: "#c5a059", directed: false, roles: ["Coterie-mate", "Coterie-mate"] },
+  mentor: { label: "Mentor / Student", short: "Mentor", category: "loyalty", color: "#60a5fa", directed: true, roles: ["Mentor", "Student"] },
+  patron: { label: "Patron / Client", short: "Patron", category: "loyalty", color: "#0891b2", directed: true, roles: ["Patron", "Client"] },
+  oath: { label: "Oath / Vassal", short: "Oath", category: "loyalty", color: "#ca8a04", directed: true, roles: ["Liege", "Vassal"] },
+  retainer: { label: "Master / Retainer", short: "Retainer", category: "loyalty", color: "#a78bfa", directed: true, roles: ["Master", "Retainer"] },
+  office: { label: "Office", short: "Office", category: "loyalty", color: "#22d3ee", directed: true, roles: ["Superior", "Officer"] },
+  boon: { label: "Boon / Debt", short: "Boon", category: "loyalty", color: "#facc15", directed: true, roles: ["Creditor", "Debtor"] },
+
+  // ── Feeling ──────────────────────────────────────────────────────────────
+  friend: { label: "Friend", short: "Friend", category: "feeling", color: "#a7f3d0", directed: false, roles: ["Friend", "Friend"] },
+  lover: { label: "Lover", short: "Lover", category: "feeling", color: "#f472b6", directed: false, roles: ["Lover", "Lover"] },
+  romantic: { label: "Romantic Interest", short: "Romantic", category: "feeling", color: "#ec4899", directed: true, roles: ["Admirer", "Beloved"] },
+  touchstone: { label: "Touchstone", short: "Touchstone", category: "feeling", color: "#e879f9", directed: true, roles: ["Kindred", "Touchstone"] },
+  rival: { label: "Rival", short: "Rival", category: "feeling", color: "#fb923c", directed: false, roles: ["Rival", "Rival"] },
+  enemy: { label: "Enemy", short: "Enemy", category: "feeling", color: "#ef4444", directed: false, roles: ["Enemy", "Enemy"] },
+  distrust: { label: "Distrust", short: "Distrust", category: "feeling", color: "#a16207", directed: true, roles: ["Distrusts", "Distrusted"] },
+
+  // ── Other ────────────────────────────────────────────────────────────────
+  contact: { label: "Contact", short: "Contact", category: "other", color: "#9ca3af", directed: false, roles: ["Contact", "Contact"] },
+  related: { label: "Related To", short: "Related", category: "other", color: "#d4d4d8", directed: false, roles: ["Kin", "Kin"] },
+  killed: { label: "Killed", short: "Killed", category: "other", color: "#b91c1c", directed: true, roles: ["Killer", "Victim"] },
+  attempted: { label: "Attempted to Kill", short: "Attempt", category: "other", color: "#f87171", directed: true, roles: ["Attacker", "Target"] },
+  custom: { label: "Custom", short: "Custom", category: "other", color: "#6b7280", directed: false, roles: ["", ""] }
+});
+
+export const DEFAULT_BOND_TYPE = "ally";
+
+/** Narrative statuses a character can carry on the map. */
+export const STATUSES = Object.freeze({
+  active: { label: "Active", glyph: "" },
+  torpor: { label: "Torpor", glyph: "T" },
+  missing: { label: "Missing", glyph: "?" },
+  dead: { label: "Final Death", glyph: "†" }
+});
+
+/**
+ * Font stacks. The first family that is actually available wins on the canvas.
+ * Amiri ships with Foundry core and is always loaded before the canvas draws,
+ * so it is the dependable fallback when Cinzel is not bundled.
+ */
+export const FONT_STACKS = Object.freeze({
+  display: ["Cinzel", "Trajan Pro", "Amiri", "Palatino Linotype", "Georgia", "serif"],
+  mono: ["Geist Mono", "Cascadia Mono", "Consolas", "Menlo", "Courier New", "monospace"]
+});
+
+/** Parse "#rrggbb" into a number PIXI understands. */
+export function hexToNumber(hex, fallback = 0x9ca3af) {
+  if (typeof hex === "number") return hex;
+  if (typeof hex !== "string") return fallback;
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  return m ? parseInt(m[1], 16) : fallback;
+}
+
+/** Resolve a bond type id to its definition, falling back to "custom". */
+export function bondType(id) {
+  return BOND_TYPES[id] ?? BOND_TYPES.custom;
+}

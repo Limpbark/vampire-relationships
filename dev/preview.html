@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vampire Relationships — renderer preview</title>
+  <style>
+    /* Foundry core fonts, so the preview matches what the canvas shows in a real world. */
+    @font-face { font-family: "Amiri"; src: url("/vendor/amiri-regular.woff2") format("woff2"); font-weight: 400; }
+    @font-face { font-family: "Amiri"; src: url("/vendor/amiri-bold.woff2") format("woff2"); font-weight: 700; }
+    /* Optional bundled faces: used automatically when the files exist. */
+    @font-face { font-family: "Cinzel"; src: url("/fonts/Cinzel.woff2") format("woff2"); font-weight: 400 900; }
+    @font-face { font-family: "Geist Mono"; src: url("/fonts/GeistMono.woff2") format("woff2"); font-weight: 100 900; }
+    html, body { margin: 0; height: 100%; background: #050505; color: #f0eeea; font: 12px Consolas, monospace; overflow: hidden; }
+    #stage { position: fixed; inset: 0; }
+    #bar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px;
+      background: rgba(10, 10, 10, .92); border: 1px solid rgba(255, 255, 255, .1); z-index: 2; }
+    #bar button { background: transparent; color: #9f9fa9; border: 1px solid rgba(255, 255, 255, .1); padding: 5px 10px;
+      font: inherit; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+    #bar button.on { color: #c5a059; border-color: rgba(197, 160, 89, .5); }
+    #log { position: fixed; left: 10px; bottom: 10px; color: #9f9fa9; z-index: 2; white-space: pre; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="bar"></div>
+  <div id="log"></div>
+  <script src="/vendor/pixi.min.js"></script>
+  <script type="module" src="./preview.mjs"></script>
+</body>
+</html>

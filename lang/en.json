@@ -1,0 +1,392 @@
+{
+  "VR": {
+    "Common": {
+      "Cancel": "Cancel",
+      "Save": "Save"
+    },
+    "Scene": {
+      "DefaultName": "Relationship Map",
+      "Create": "Relationship Map",
+      "CreateTitle": "New Relationship Map",
+      "CreateHint": "Creates a dark, gridless scene with vision and fog switched off. Drop Actors onto it, or use Cast on the toolbar, then bind them together.",
+      "Name": "Scene name",
+      "CreateConfirm": "Create map"
+    },
+    "Welcome": {
+      "Title": "Vampire Relationships",
+      "Body": "This world has no relationship map yet. Create one now? You can always make another later from the Scenes sidebar or the module settings."
+    },
+    "Context": {
+      "Mark": "Use as Relationship Map",
+      "Unmark": "Stop using as Relationship Map"
+    },
+    "Notify": {
+      "MapCreated": "Relationship map \"{name}\" created.",
+      "MapMarked": "\"{name}\" is now a relationship map.",
+      "MapUnmarked": "\"{name}\" is an ordinary scene again.",
+      "NothingToArrange": "Place at least two characters on the map before arranging it.",
+      "BondNeedsTwo": "Choose who is bound: a bond needs a character at each end.",
+      "BondSelf": "A character cannot be bound to themselves.",
+      "BondFailed": "The bond could not be saved. See the console for details.",
+      "CastNone": "Tick at least one character to add.",
+      "LayoutLocked": "The layout is locked. Unlock it from Appearance on the map toolbar.",
+      "PlayersCannotMove": "Only the Storyteller can rearrange this map."
+    },
+    "Group": {
+      "Unaligned": "Unaligned"
+    },
+    "Tooltip": {
+      "ClickToEdit": "Click to edit"
+    },
+    "Toolbar": {
+      "Arrange": "Arrange",
+      "Constellation": "Constellation: round portraits",
+      "Cards": "Cards: portrait and name plate",
+      "Search": "Search by name...",
+      "Labels": "Bond labels",
+      "Subtitles": "Clan and covenant under names",
+      "Patterned": "Patterned lines by bond category",
+      "Fit": "Fit the map to the screen",
+      "ViewAs": "See as a player",
+      "Filters": "Filters",
+      "Appearance": "Appearance",
+      "Cast": "Cast",
+      "NewBond": "New Bond",
+      "SeeingAs": "Seeing the map as {name}",
+      "ExitViewAs": "Exit"
+    },
+    "Arrange": {
+      "Title": "Arrange",
+      "Network": "Network",
+      "NetworkHint": "Everyone, pulled together by their bonds.",
+      "Covenant": "Covenants",
+      "CovenantHint": "Characters gathered by covenant.",
+      "Clan": "Clans",
+      "ClanHint": "Characters gathered by clan.",
+      "Lineage": "Lineage",
+      "LineageHint": "Sires above, childer below, line by line.",
+      "Circle": "Circle",
+      "CircleHint": "Everyone on a single ring.",
+      "Undo": "Undo last arrange",
+      "SelectionHint": "With two or more tokens selected, only those are arranged."
+    },
+    "ViewAs": {
+      "Title": "See as",
+      "Storyteller": "Storyteller",
+      "StorytellerHint": "Everything, with secret marks.",
+      "NoCharacter": "No character assigned",
+      "NoPlayers": "No player accounts in this world yet."
+    },
+    "Filters": {
+      "Title": "Filters",
+      "ShowAll": "Show all",
+      "HideAll": "Hide all",
+      "Hint": "Filters only change what you see."
+    },
+    "Appearance": {
+      "Title": "Appearance",
+      "Portraits": "Portraits",
+      "ImagePortrait": "Actor portrait",
+      "ImageToken": "Token image",
+      "Groups": "Group outlines",
+      "GroupsNone": "None",
+      "GroupsCovenant": "By covenant",
+      "GroupsClan": "By clan",
+      "Show": "Show",
+      "HoverFocus": "Highlight on hover",
+      "HoverFocusHint": "Lights the bonds of the character under the pointer and steps the rest back.",
+      "Backdrop": "Backdrop",
+      "BackdropHint": "A faint dot grid and haze behind the map.",
+      "Layout": "Layout",
+      "Lock": "Lock layout",
+      "LockHint": "A stray drag moves nothing.",
+      "Shared": "These choices are saved on the scene and shared with every player."
+    },
+    "Bond": {
+      "New": "New Bond",
+      "Edit": "Edit Bond: {name}",
+      "From": "From",
+      "To": "To",
+      "WhoAndWhom": "Who and Whom",
+      "Select": "Select...",
+      "OnThisMap": "On this map",
+      "Elsewhere": "Not on this map",
+      "Swap": "Swap the two ends",
+      "ShowArrow": "Show arrow",
+      "ShowArrowHint": "Marks the direction from the first character to the second.",
+      "TheBond": "The Bond",
+      "Type": "Bond type",
+      "TypeHint": "The nature of the connection.",
+      "Label": "Label (optional)",
+      "LabelPlaceholder": "e.g. \"Embraced in 1892\"",
+      "LabelHint": "A short descriptor shown on the line.",
+      "Color": "Line colour",
+      "WhoSeesIt": "Who Sees It",
+      "Notes": "Notes",
+      "PublicNotes": "Public notes",
+      "PublicNotesPlaceholder": "What players know about this bond.",
+      "PublicNotesHint": "Shown to every player who can see the bond.",
+      "StorytellerOnly": "Storyteller only",
+      "PrivateNotes": "Private notes",
+      "PrivateNotesPlaceholder": "Hidden agendas, blackmail, true motives...",
+      "PrivateNotesHint": "Never shown to players.",
+      "More": "More",
+      "Strength": "Bond strength",
+      "Faint": "Faint",
+      "Unbreakable": "Unbreakable",
+      "KeyTie": "Key tie",
+      "KeyTieHint": "Marks one of the most important ties.",
+      "Delete": "Delete",
+      "Bind": "Bind",
+      "DeleteTitle": "Delete Bond",
+      "DeleteBody": "Sever this bond for good? This cannot be undone."
+    },
+    "Visibility": {
+      "Everyone": "Everyone",
+      "EveryoneHint": "Visible to all players.",
+      "Storyteller": "Storyteller only",
+      "StorytellerHint": "Hidden from every player.",
+      "Specific": "Specific players",
+      "SpecificHint": "Hidden, except from the players you pick.",
+      "NoPlayers": "There are no player accounts to choose from yet.",
+      "Rule": "A player only ever sees a bond when they can also see the characters at both ends."
+    },
+    "Dossier": {
+      "Title": "Dossier",
+      "Missing": "This character no longer exists.",
+      "KeyPerson": "Key person",
+      "OpenSheet": "Open character sheet",
+      "ToggleKey": "Mark as a key person",
+      "AddToMap": "Place on this map",
+      "WhoSees": "Who sees this character",
+      "OwnershipHint": "Fine-tune with Foundry's ownership settings",
+      "Status": "Status",
+      "Ties": "Ties",
+      "NoTies": "No bonds recorded yet.",
+      "SecretAll": "No player sees this bond",
+      "SecretSome": "Only some players see this bond",
+      "EditBond": "Edit bond",
+      "Line": "Line",
+      "Sire": "Sire",
+      "UnknownSire": "Unknown sire",
+      "Childer": "Childer",
+      "HiddenFromPlayers": "Hidden from players",
+      "VisibleToAll": "Visible to all players",
+      "VisibleTo": "Visible to {names}"
+    },
+    "Cast": {
+      "Title": "Add to the Cast",
+      "All": "All",
+      "None": "None",
+      "Empty": "Every Actor in this world is already on the map.",
+      "TiesHint": "Bonds already recorded for this character",
+      "Add": "Add to map",
+      "Chosen": "{count} chosen"
+    },
+    "Settings": {
+      "CreateMap": {
+        "Name": "Relationship map",
+        "Label": "Create a relationship map",
+        "Hint": "Creates a new scene set up as a relationship map. An existing scene can be converted from its right-click menu in the Scenes sidebar."
+      },
+      "MinLevel": {
+        "Name": "Ownership needed to see a character",
+        "Hint": "A player sees a character on the map only when they hold at least this ownership level on its Actor. Storytellers always see everyone."
+      },
+      "DefaultBond": {
+        "Name": "New bonds are visible to",
+        "Hint": "The starting audience for a newly created bond. Either way, a bond stays hidden from a player who cannot see both of its characters."
+      },
+      "PlayersMove": {
+        "Name": "Players may rearrange the map",
+        "Hint": "When off, only Storytellers can drag characters around a relationship map."
+      },
+      "DossierOnSelect": {
+        "Name": "Open the dossier on select",
+        "Hint": "Selecting a single character on a relationship map opens the panel listing their ties."
+      }
+    },
+    "Keys": {
+      "NewBond": {
+        "Name": "New bond",
+        "Hint": "On a relationship map, start a bond from the selected token (or between two selected tokens)."
+      }
+    },
+    "Category": {
+      "blood": "Blood",
+      "loyalty": "Loyalty",
+      "feeling": "Feeling",
+      "other": "Other"
+    },
+    "Status": {
+      "active": "Active",
+      "torpor": "Torpor",
+      "missing": "Missing",
+      "dead": "Final Death"
+    },
+    "BondType": {
+      "sire": {
+        "label": "Sire / Childe",
+        "short": "Sire",
+        "from": "Sire",
+        "to": "Childe"
+      },
+      "regnant": {
+        "label": "Regnant / Ghoul",
+        "short": "Regnant",
+        "from": "Regnant",
+        "to": "Ghoul"
+      },
+      "vinculum": {
+        "label": "Vinculum",
+        "short": "Vinculum",
+        "from": "Regnant",
+        "to": "Thrall"
+      },
+      "broodmate": {
+        "label": "Broodmate",
+        "short": "Broodmate",
+        "from": "Broodmate",
+        "to": "Broodmate"
+      },
+      "avus": {
+        "label": "Avus / Initiate",
+        "short": "Avus",
+        "from": "Avus",
+        "to": "Initiate"
+      },
+      "diablerie": {
+        "label": "Diablerie",
+        "short": "Diablerie",
+        "from": "Diablerist",
+        "to": "Victim"
+      },
+      "herd": {
+        "label": "Herd / Vessel",
+        "short": "Herd",
+        "from": "Feeds from",
+        "to": "Vessel"
+      },
+      "ally": {
+        "label": "Ally",
+        "short": "Ally",
+        "from": "Ally",
+        "to": "Ally"
+      },
+      "coterie": {
+        "label": "Coterie",
+        "short": "Coterie",
+        "from": "Coterie-mate",
+        "to": "Coterie-mate"
+      },
+      "mentor": {
+        "label": "Mentor / Student",
+        "short": "Mentor",
+        "from": "Mentor",
+        "to": "Student"
+      },
+      "patron": {
+        "label": "Patron / Client",
+        "short": "Patron",
+        "from": "Patron",
+        "to": "Client"
+      },
+      "oath": {
+        "label": "Oath / Vassal",
+        "short": "Oath",
+        "from": "Liege",
+        "to": "Vassal"
+      },
+      "retainer": {
+        "label": "Master / Retainer",
+        "short": "Retainer",
+        "from": "Master",
+        "to": "Retainer"
+      },
+      "office": {
+        "label": "Office",
+        "short": "Office",
+        "from": "Superior",
+        "to": "Officer"
+      },
+      "boon": {
+        "label": "Boon / Debt",
+        "short": "Boon",
+        "from": "Creditor",
+        "to": "Debtor"
+      },
+      "friend": {
+        "label": "Friend",
+        "short": "Friend",
+        "from": "Friend",
+        "to": "Friend"
+      },
+      "lover": {
+        "label": "Lover",
+        "short": "Lover",
+        "from": "Lover",
+        "to": "Lover"
+      },
+      "romantic": {
+        "label": "Romantic Interest",
+        "short": "Romantic",
+        "from": "Admirer",
+        "to": "Beloved"
+      },
+      "touchstone": {
+        "label": "Touchstone",
+        "short": "Touchstone",
+        "from": "Kindred",
+        "to": "Touchstone"
+      },
+      "rival": {
+        "label": "Rival",
+        "short": "Rival",
+        "from": "Rival",
+        "to": "Rival"
+      },
+      "enemy": {
+        "label": "Enemy",
+        "short": "Enemy",
+        "from": "Enemy",
+        "to": "Enemy"
+      },
+      "distrust": {
+        "label": "Distrust",
+        "short": "Distrust",
+        "from": "Distrusts",
+        "to": "Distrusted"
+      },
+      "contact": {
+        "label": "Contact",
+        "short": "Contact",
+        "from": "Contact",
+        "to": "Contact"
+      },
+      "related": {
+        "label": "Related To",
+        "short": "Related",
+        "from": "Kin",
+        "to": "Kin"
+      },
+      "killed": {
+        "label": "Killed",
+        "short": "Killed",
+        "from": "Killer",
+        "to": "Victim"
+      },
+      "attempted": {
+        "label": "Attempted to Kill",
+        "short": "Attempt",
+        "from": "Attacker",
+        "to": "Target"
+      },
+      "custom": {
+        "label": "Custom",
+        "short": "Custom",
+        "from": "",
+        "to": ""
+      }
+    }
+  }
+}

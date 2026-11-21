@@ -1,0 +1,115 @@
+<div class="vr-dossier-body">
+{{#if missing}}
+  <p class="vr-hint vr-pad">{{localize "VR.Dossier.Missing"}}</p>
+{{else}}
+  <header class="vr-dossier-head">
+    <div class="vr-portrait {{#if status}}vr-status-{{status}}{{/if}}">
+      {{#if img}}<img src="{{img}}" alt="">{{else}}<span>{{initials}}</span>{{/if}}
+    </div>
+    <div class="vr-dossier-id">
+      {{#if subtitle}}<p class="vr-overline">{{subtitle}}</p>{{/if}}
+      <h2>{{name}}</h2>
+      {{#if statusLabel}}<p class="vr-tag vr-tag-muted"><i class="fa-solid fa-moon"></i> {{statusLabel}}</p>{{/if}}
+      {{#if audience}}
+        <p class="vr-tag {{#if audience.open}}vr-tag-open{{else}}vr-tag-gold{{/if}}">
+          <i class="fa-solid {{#if audience.open}}fa-eye{{else}}fa-eye-slash{{/if}}"></i> {{audience.caption}}
+        </p>
+      {{/if}}
+      {{#if key}}<p class="vr-tag vr-tag-gold"><i class="fa-solid fa-star"></i> {{localize "VR.Dossier.KeyPerson"}}</p>{{/if}}
+    </div>
+  </header>
+
+  <div class="vr-dossier-tools">
+    {{#if editing}}
+      <button type="button" class="vr-btn vr-cta" data-action="newBond"><i class="fa-solid fa-plus"></i> {{localize "VR.Toolbar.NewBond"}}</button>
+    {{/if}}
+    <button type="button" class="vr-btn" data-action="openSheet" data-tooltip="{{localize "VR.Dossier.OpenSheet"}}"><i class="fa-solid fa-scroll"></i></button>
+    {{#if editing}}
+      <button type="button" class="vr-btn {{#if key}}vr-on{{/if}}" data-action="toggleKey" data-tooltip="{{localize "VR.Dossier.ToggleKey"}}"><i class="fa-solid fa-star"></i></button>
+      {{#if mapActive}}{{#unless onMap}}
+        <button type="button" class="vr-btn" data-action="addToMap" data-actor-id="{{actorId}}" data-tooltip="{{localize "VR.Dossier.AddToMap"}}"><i class="fa-solid fa-location-dot"></i></button>
+      {{/unless}}{{/if}}
+    {{/if}}
+  </div>
+
+  {{#if editing}}
+  <section class="vr-dossier-gm">
+    <p class="vr-overline">{{localize "VR.Dossier.WhoSees"}}</p>
+    <div class="vr-inline">
+      <button type="button" class="vr-btn {{#if audience.open}}vr-on{{/if}}" data-action="reveal"><i class="fa-solid fa-eye"></i> {{localize "VR.Visibility.Everyone"}}</button>
+      <button type="button" class="vr-btn {{#if audience.hidden}}vr-on{{/if}}" data-action="conceal"><i class="fa-solid fa-eye-slash"></i> {{localize "VR.Visibility.Storyteller"}}</button>
+      <button type="button" class="vr-btn" data-action="ownership" data-tooltip="{{localize "VR.Dossier.OwnershipHint"}}"><i class="fa-solid fa-user-lock"></i></button>
+    </div>
+    <label class="vr-inline vr-status-row">
+      <span class="vr-overline">{{localize "VR.Dossier.Status"}}</span>
+      <select data-status>
+        {{#each statuses}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      </select>
+    </label>
+  </section>
+  {{/if}}
+
+  {{#if counts.length}}
+  <div class="vr-counts">
+    {{#each counts}}
+      <div><span class="vr-overline"><i class="vr-square" style="background: {{color}}"></i>{{label}}</span><b>{{count}}</b></div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <div class="vr-dossier-scroll">
+    <h3 class="vr-heading"><span>{{localize "VR.Dossier.Ties"}}</span><em>{{total}}</em></h3>
+    {{#unless hasTies}}<p class="vr-hint vr-pad">{{localize "VR.Dossier.NoTies"}}</p>{{/unless}}
+
+    {{#each groups}}
+      <p class="vr-overline vr-group-label"><i class="vr-square" style="background: {{color}}"></i>{{label}}</p>
+      {{#each ties}}
+      <article class="vr-tie" data-bond-id="{{bondId}}" data-actor-id="{{otherId}}" style="--vr-bond: {{color}}">
+        <button type="button" class="vr-tie-main" data-action="visit">
+          <span class="vr-thumb {{#unless onMap}}vr-off-map{{/unless}}">
+            {{#if otherImg}}<img src="{{otherImg}}" alt="">{{else}}<em>{{otherInitials}}</em>{{/if}}
+          </span>
+          <span class="vr-tie-text">
+            <b>{{otherName}}</b>
+            <span class="vr-tie-role">
+              <i class="vr-square"></i>{{role}}{{#if label}} <q>{{label}}</q>{{/if}}
+              {{#if arrow}}<i class="fa-solid {{arrow}} vr-tie-arrow"></i>{{/if}}
+            </span>
+            {{#if otherSubtitle}}<small>{{otherSubtitle}}</small>{{/if}}
+          </span>
+        </button>
+        <span class="vr-tie-marks">
+          {{#if key}}<i class="fa-solid fa-star vr-gold" data-tooltip="{{localize "VR.Bond.KeyTie"}}"></i>{{/if}}
+          {{#if secretAll}}<i class="fa-solid fa-lock vr-gold" data-tooltip="{{localize "VR.Dossier.SecretAll"}}"></i>{{/if}}
+          {{#if secretSome}}<i class="fa-solid fa-circle-half-stroke vr-gold" data-tooltip="{{localize "VR.Dossier.SecretSome"}}"></i>{{/if}}
+          {{#if canEdit}}
+            <button type="button" class="vr-icon-btn" data-action="editBond" data-tooltip="{{localize "VR.Dossier.EditBond"}}"><i class="fa-solid fa-pen"></i></button>
+          {{/if}}
+          {{#if canAdd}}
+            <button type="button" class="vr-icon-btn" data-action="addToMap" data-tooltip="{{localize "VR.Dossier.AddToMap"}}"><i class="fa-solid fa-location-dot"></i></button>
+          {{/if}}
+        </span>
+        <div class="vr-tie-strength">{{#each pips}}<i class="{{#if on}}on{{/if}}"></i>{{/each}}</div>
+        {{#if notes}}<p class="vr-tie-notes">{{notes}}</p>{{/if}}
+        {{#if gmNotes}}<p class="vr-tie-notes vr-tie-secret"><i class="fa-solid fa-lock"></i> {{gmNotes}}</p>{{/if}}
+      </article>
+      {{/each}}
+    {{/each}}
+
+    {{#if lineage.show}}
+      <h3 class="vr-heading"><span>{{localize "VR.Dossier.Line"}}</span></h3>
+      <dl class="vr-line">
+        <dt>{{localize "VR.Dossier.Sire"}}</dt>
+        <dd>
+          {{#if lineage.unknownSire}}<span class="vr-muted">{{localize "VR.Dossier.UnknownSire"}}</span>{{/if}}
+          {{#each lineage.sires}}<button type="button" class="vr-link" data-action="visit" data-actor-id="{{otherId}}">{{otherName}}</button>{{/each}}
+        </dd>
+        {{#if lineage.childer.length}}
+        <dt>{{localize "VR.Dossier.Childer"}}</dt>
+        <dd>{{#each lineage.childer}}<button type="button" class="vr-link" data-action="visit" data-actor-id="{{otherId}}">{{otherName}}</button>{{/each}}</dd>
+        {{/if}}
+      </dl>
+    {{/if}}
+  </div>
+{{/if}}
+</div>

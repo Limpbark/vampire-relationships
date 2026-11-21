@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vampire Relationships — interface preview</title>
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="/styles/vampire-relationships.css">
+  <style>
+    /* The few bits of Foundry's page the module leans on. */
+    @font-face { font-family: "Amiri"; src: url("/vendor/amiri-regular.woff2") format("woff2"); font-weight: 400; }
+    @font-face { font-family: "Amiri"; src: url("/vendor/amiri-bold.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Cinzel"; src: url("/fonts/Cinzel.woff2") format("woff2"); font-weight: 400 900; }
+    @font-face { font-family: "Geist Mono"; src: url("/fonts/GeistMono.woff2") format("woff2"); font-weight: 100 900; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #050505; color: #ddd; font: 13px/1.4 Signika, "Segoe UI", sans-serif; overflow: hidden; }
+    #board { position: fixed; inset: 0; }
+    #interface { position: fixed; inset: 0; pointer-events: none; display: flex; justify-content: center; }
+    #ui-middle { width: 70%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+    #ui-top { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
+    .application { position: fixed; z-index: 100; display: flex; flex-direction: column; max-height: 92vh; }
+    .application .window-header { flex: none; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px 0 14px; }
+    .application .window-title { flex: 1; margin: 0; border: 0; }
+    .application .header-control { width: 26px; height: 26px; border: 0; background: none; color: #888; cursor: pointer; }
+    .application .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    button { font: inherit; }
+    #mf-toasts { position: fixed; right: 14px; top: 14px; z-index: 999; display: flex; flex-direction: column; gap: 6px; }
+    .mf-toast { padding: 8px 12px; border: 1px solid #333; background: #111; color: #ddd; font: 12px Consolas, monospace; max-width: 340px; }
+    .mf-warn { border-color: #a16207; color: #fcd34d; }
+    .mf-error { border-color: #991b1b; color: #fca5a5; }
+    #mf-note { position: fixed; left: 12px; bottom: 10px; color: #55555e; font: 11px Consolas, monospace; z-index: 2; }
+    #mf-note a { color: #8a8a94; }
+  </style>
+</head>
+<body>
+  <div id="board"></div>
+  <div id="interface"><section id="ui-middle"><header id="ui-top"></header></section></div>
+  <div id="mf-toasts"></div>
+  <div id="mf-note"></div>
+  <script src="/vendor/pixi.min.js"></script>
+  <script src="/vendor/handlebars.min.js"></script>
+  <script type="module" src="./ui.mjs"></script>
+</body>
+</html>
