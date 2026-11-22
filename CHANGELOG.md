@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0
+
+- **Auto layout** (Arrange → Auto layout) replaces the old Network arrangement
+  with one built for large casts. Characters are placed by how many bonds apart
+  they are, crossed bonds are untangled, nobody is left standing on a bond that
+  is not theirs, separate webs sit side by side and characters with no bonds
+  wait in rows underneath. On an invented court of 90 it leaves 28 crossed
+  bonds where Network left 46, and no portrait on a foreign bond where Network
+  left 10.
+- When outlines are on, Auto layout keeps each covenant, clan or coterie
+  together on ground of its own: no outline overlaps another, and nobody
+  stands inside an outline they do not belong to.
+- Arrange → Covenants, Clans and Coteries now use the same engine, so they
+  follow the bonds too instead of packing each group into a ring.
+- A character with no covenant or clan no longer gets an "Unaligned" outline.
+  They stand beside whoever they are bound to, which is where a ghoul or a
+  touchstone belongs.
+- Characters added with Cast or from a dossier are set down beside the people
+  they are bound to, or near the middle of the view, and never on top of anyone.
+- In Cards view, arrangements leave room for the wider cards, not the average one.
+- A notice after each arrangement says how to undo it.
+
 ## 0.2.1
 
 - Fixed: rank, clan, covenant, coterie, portrait and the sheet's "dead" box were

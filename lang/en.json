@@ -25,15 +25,13 @@
       "MapMarked": "\"{name}\" is now a relationship map.",
       "MapUnmarked": "\"{name}\" is an ordinary scene again.",
       "NothingToArrange": "Place at least two characters on the map before arranging it.",
+      "Arranged": "Arranged {count} characters. To put them back: Arrange, then Undo last arrange.",
       "BondNeedsTwo": "Choose who is bound: a bond needs a character at each end.",
       "BondSelf": "A character cannot be bound to themselves.",
       "BondFailed": "The bond could not be saved. See the console for details.",
       "CastNone": "Tick at least one character to add.",
       "LayoutLocked": "The layout is locked. Unlock it from Appearance on the map toolbar.",
       "PlayersCannotMove": "Only the Storyteller can rearrange this map."
-    },
-    "Group": {
-      "Unaligned": "Unaligned"
     },
     "Tooltip": {
       "ClickToEdit": "Click to edit"
@@ -57,12 +55,12 @@
     },
     "Arrange": {
       "Title": "Arrange",
-      "Network": "Network",
-      "NetworkHint": "Everyone, pulled together by their bonds.",
+      "Auto": "Auto layout",
+      "AutoHint": "Untangles the web by its bonds and sets the unattached in rows beneath. Keeps outlined groups together.",
       "Covenant": "Covenants",
-      "CovenantHint": "Characters gathered by covenant.",
+      "CovenantHint": "Auto layout, with every covenant on ground of its own.",
       "Clan": "Clans",
-      "ClanHint": "Characters gathered by clan.",
+      "ClanHint": "Auto layout, with every clan on ground of its own.",
       "Lineage": "Lineage",
       "LineageHint": "Sires above, childer below, line by line.",
       "Circle": "Circle",
@@ -70,7 +68,7 @@
       "Undo": "Undo last arrange",
       "SelectionHint": "With two or more tokens selected, only those are arranged.",
       "Coterie": "Coteries",
-      "CoterieHint": "Each coterie gathered together, everyone else alongside."
+      "CoterieHint": "Auto layout, with every coterie on ground of its own."
     },
     "ViewAs": {
       "Title": "See as",

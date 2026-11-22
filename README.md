@@ -16,7 +16,9 @@ system. It runs in any other system too; it just has less to print under each na
 
 ![Rank, bloodline and coterie under each name; Destroyed, Missing and Torpor flags](docs/status.jpg)
 
-*Screenshots are from the development preview, with stand-in portraits.*
+![Auto layout: sixty characters, each covenant on ground of its own, the unattached beneath](docs/auto-layout.jpg)
+
+*Screenshots are from the development preview, with stand-in portraits and an invented court.*
 
 ## Install
 
@@ -38,8 +40,8 @@ release is published.
    toolbar to tick a whole court at once.
 3. **Bind them.** Select one or two tokens and press **New Bond** (or `Shift+B`). Pick the
    type, add a label if you like, and choose who sees it.
-4. **Arrange.** **Arrange → Network** pulls everyone together by their bonds. Drag tokens to
-   taste; they are normal tokens.
+4. **Arrange.** **Arrange → Auto layout** untangles the whole web in one click, however many
+   characters are on it. Drag tokens to taste afterwards; they are normal tokens.
 
 Selecting a character opens their **dossier**: every tie they have, grouped by kind, with
 their sire and childer at the bottom.
@@ -85,13 +87,26 @@ A token's ordinary *hidden* toggle still works and hides it from every player.
   token*. Bonds, status and visibility always belong to the Actor, whichever kind of
   token stands for it. For one sheet per character, tick **Link Actor Data** in the
   token's configuration.
-- **Arrange.** Network, Covenants, Clans, Coteries, Lineage (sires above childer) and
-  Circle, each with undo. With two or more tokens selected, only those are arranged.
+- **Auto layout.** **Arrange → Auto layout** places everyone by their bonds: people who are
+  tied stand together, crossed lines are kept to a minimum, nobody is left standing on a
+  bond that is not theirs, separate webs sit side by side, and characters with no bonds
+  yet wait in rows underneath. When outlines are on (see *Appearance*), each covenant,
+  clan or coterie is also kept together on ground of its own, so no outline overlaps
+  another or has an outsider inside it. It is built for large casts: sixty characters
+  take a fraction of a second, and the scene grows if the web needs more room.
+- **Other arrangements.** Covenants, Clans and Coteries (Auto layout gathered by that
+  group, switching its outlines on), Lineage (sires above childer) and Circle. Every
+  arrangement can be undone from the same menu, until the next one or a reload. With
+  two or more tokens selected, only those are arranged.
+- **Newcomers.** A character added with **Cast**, or from a dossier, is set down beside
+  the people they are bound to if those are on the map, otherwise near the middle of
+  the view, and never on top of anyone.
 - **Focus.** Hovering a character lights their ties and steps everything else back. Search
   by name; press Enter to jump there.
 - **Filters.** Hide bond types you do not want to look at right now. Filters are personal.
 - **Appearance.** Portrait source (Actor portrait or token image), outlines around each
-  covenant, clan or coterie, patterned lines by family, and a layout lock.
+  covenant, clan or coterie (a character with none gets no outline), patterned lines by
+  family, and a layout lock.
 - **Status.** Flag a character from their dossier with one click: Torpor, Missing, Left
   the City, Dead or Destroyed. The map shows it four ways at once, so it reads at any
   zoom: a boxed caption under the name, a badge on the portrait, a drained portrait, and
@@ -138,13 +153,14 @@ node dev/serve.mjs     # then open http://localhost:5179/dev/ui.html
 `dev/ui.html` runs the real module inside a small stand-in for Foundry with an invented
 court, which is handy for working on the drawing and the interface. It borrows PIXI,
 Handlebars and icons from a local Foundry install (set `FOUNDRY_APP` if yours is not in the
-default Windows location). It is not a substitute for testing in a real world.
+default Windows location). Add `?court=60` for an invented court of that size, scattered
+about, to try the arrangements on. It is not a substitute for testing in a real world.
 
 To publish a release, push a version tag:
 
 ```
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 GitHub Actions stamps the version into `module.json`, builds `module.zip` and attaches both

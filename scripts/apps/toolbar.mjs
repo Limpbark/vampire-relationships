@@ -189,7 +189,7 @@ export class MapToolbar {
     return `
       <header>${esc(t("Arrange.Title"))}</header>
       <div class="vr-pop-body">
-        ${item("network", "fa-share-nodes", t("Arrange.Network"), t("Arrange.NetworkHint"))}
+        ${item("auto", "fa-wand-magic-sparkles", t("Arrange.Auto"), t("Arrange.AutoHint"))}
         ${item("covenant", "fa-flag", t("Arrange.Covenant"), t("Arrange.CovenantHint"))}
         ${item("clan", "fa-droplet", t("Arrange.Clan"), t("Arrange.ClanHint"))}
         ${item("coterie", "fa-people-group", t("Arrange.Coterie"), t("Arrange.CoterieHint"))}

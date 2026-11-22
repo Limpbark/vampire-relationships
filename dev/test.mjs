@@ -255,28 +255,165 @@ await test("layouts place every node, finitely, without overlap", () => {
   for (let i = 1; i < nodes.length; i++) edges.push({ a: `n${Math.floor(i / 2)}`, b: `n${i}`, lineage: i < 7 ? 1 : 0 });
   const results = {
     circle: layout.circleLayout(nodes, { spacing: 260 }),
-    force: layout.forceLayout(nodes, edges, { spacing: 260 }),
-    grouped: layout.groupedLayout(nodes, { spacing: 260 }),
-    lineage: layout.lineageLayout(nodes, edges, { spacingX: 260, spacingY: 300 }),
-    grid: layout.gridLayout(nodes, { spacingX: 260, spacingY: 260 })
+    auto: layout.autoLayout(nodes, edges, { spacing: 260 }),
+    grouped: layout.autoLayout(nodes, edges, { spacing: 260, grouped: true }),
+    cards: layout.autoLayout(nodes, edges, { spacing: 260, stretchX: 2 }),
+    lineage: layout.lineageLayout(nodes, edges, { spacingX: 260, spacingY: 300 })
   };
   for (const [name, positions] of Object.entries(results)) {
     assert.equal(positions.size, nodes.length, `${name}: all nodes placed`);
     for (const p of positions.values()) assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y), `${name}: finite`);
     assert.ok(minDistance(positions) > 120, `${name}: nodes too close (${minDistance(positions).toFixed(1)})`);
   }
-  const a = layout.forceLayout(nodes, edges, { spacing: 260 });
-  assert.deepEqual([...a.values()], [...results.force.values()], "force layout is deterministic");
+  assert.ok(minDistance(results.auto) >= 259, "auto layout keeps everyone a full spacing apart");
+  const again = layout.autoLayout(nodes, edges, { spacing: 260 });
+  assert.deepEqual([...again.values()], [...results.auto.values()], "auto layout is deterministic");
 });
 
-await test("layouts cope with empty and single-node input", () => {
-  for (const fn of [layout.circleLayout, layout.groupedLayout, layout.gridLayout]) {
-    assert.equal(fn([]).size, 0);
-    assert.equal(fn([{ id: "solo" }]).size, 1);
-  }
-  assert.equal(layout.forceLayout([], []).size, 0);
-  assert.deepEqual(layout.forceLayout([{ id: "solo" }], []).get("solo"), { x: 0, y: 0 });
+await test("layouts cope with empty, single-node and untidy input", () => {
+  assert.equal(layout.circleLayout([]).size, 0);
+  assert.equal(layout.circleLayout([{ id: "solo" }]).size, 1);
+  assert.equal(layout.autoLayout([], []).size, 0);
+  assert.deepEqual(layout.autoLayout([{ id: "solo" }], []).get("solo"), { x: 0, y: 0 });
   assert.equal(layout.lineageLayout([{ id: "solo" }], []).size, 1);
+
+  // Loops, doubled bonds and bonds to people who are not on the map are ignored.
+  const pair = layout.autoLayout(
+    [{ id: "a" }, { id: "b" }],
+    [{ a: "a", b: "a" }, { a: "a", b: "ghost" }, { a: "a", b: "b" }, { a: "b", b: "a" }],
+    { spacing: 200 }
+  );
+  assert.equal(pair.size, 2);
+  const span = Math.hypot(pair.get("a").x - pair.get("b").x, pair.get("a").y - pair.get("b").y);
+  assert.ok(Math.abs(span - 270) < 1, `two bound characters stand one bond apart (${span.toFixed(1)})`);
+
+  // Nobody bound to anybody: a tidy block, not a pile.
+  const strangers = layout.autoLayout(sampleNodes(7), [], { spacing: 200 });
+  assert.equal(strangers.size, 7);
+  assert.ok(minDistance(strangers) >= 199);
+});
+
+/** An invented court as layout input, grouped by a field of its characters. */
+async function courtFor(size, groupBy) {
+  const { makeCourt } = await import("./court.mjs");
+  const court = makeCourt(size);
+  return {
+    nodes: court.cast.map((person) => ({ id: person.id, group: groupBy ? person[groupBy] : "" })),
+    edges: court.bonds.map((bond) => ({ a: bond.a, b: bond.b }))
+  };
+}
+
+function crossings(edges, pos) {
+  const side = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  let count = 0;
+  for (let i = 0; i < edges.length; i++) {
+    for (let j = i + 1; j < edges.length; j++) {
+      const [e, f] = [edges[i], edges[j]];
+      if (e.a === f.a || e.a === f.b || e.b === f.a || e.b === f.b) continue;
+      const [p1, p2, p3, p4] = [pos.get(e.a), pos.get(e.b), pos.get(f.a), pos.get(f.b)];
+      if (side(p3, p4, p1) * side(p3, p4, p2) < 0 && side(p1, p2, p3) * side(p1, p2, p4) < 0) count++;
+    }
+  }
+  return count;
+}
+
+await test("auto layout keeps a court of sixty readable", async () => {
+  const spacing = 260;
+  const { nodes, edges } = await courtFor(60);
+  const pos = layout.autoLayout(nodes, edges, { spacing });
+  assert.equal(pos.size, 60);
+  assert.ok(minDistance(pos) >= spacing - 1, `everyone a spacing apart (${minDistance(pos).toFixed(1)})`);
+
+  // Nobody stands on a bond that is not theirs.
+  for (const node of nodes) {
+    const p = pos.get(node.id);
+    for (const e of edges) {
+      if (e.a === node.id || e.b === node.id) continue;
+      const [a, b] = [pos.get(e.a), pos.get(e.b)];
+      const len2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+      const along = Math.min(1, Math.max(0, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / len2));
+      const gap = Math.hypot(p.x - (a.x + (b.x - a.x) * along), p.y - (a.y + (b.y - a.y) * along));
+      assert.ok(gap > spacing * 0.3, `${node.id} stands on the bond ${e.a}-${e.b}`);
+    }
+  }
+
+  // The unattached wait in rows beneath everyone who has a bond.
+  const bound = new Set(edges.flatMap((e) => [e.a, e.b]));
+  const loners = nodes.filter((node) => !bound.has(node.id));
+  assert.ok(loners.length > 3);
+  const floor = Math.max(...[...bound].map((id) => pos.get(id).y));
+  for (const node of loners) assert.ok(pos.get(node.id).y > floor, `${node.id} waits below the web`);
+
+  // And the web is all but untangled: a ring of the same court crosses hundreds of times.
+  const ring = crossings(edges, layout.circleLayout(nodes, { spacing }));
+  const auto = crossings(edges, pos);
+  assert.ok(auto <= 8 && auto * 20 < ring, `too many crossed bonds (${auto}, against ${ring} on a ring)`);
+});
+
+await test("grouped auto layout gives every group ground of its own", async () => {
+  const spacing = 260;
+  for (const groupBy of ["covenant", "coterie"]) {
+    const { nodes, edges } = await courtFor(90, groupBy);
+    const pos = layout.autoLayout(nodes, edges, { spacing, grouped: true });
+    assert.equal(pos.size, 90);
+    assert.ok(minDistance(pos) >= spacing - 1, `${groupBy}: everyone a spacing apart`);
+
+    const ground = new Map();
+    for (const node of nodes) {
+      if (!node.group) continue;
+      const p = pos.get(node.id);
+      const g = ground.get(node.group) ?? { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity, size: 0 };
+      g.x0 = Math.min(g.x0, p.x - spacing / 2);
+      g.y0 = Math.min(g.y0, p.y - spacing / 2);
+      g.x1 = Math.max(g.x1, p.x + spacing / 2);
+      g.y1 = Math.max(g.y1, p.y + spacing / 2);
+      g.size += 1;
+      ground.set(node.group, g);
+    }
+    const shared = [...ground].filter(([, g]) => g.size > 1);
+    assert.ok(shared.length >= 4, `${groupBy}: the court has groups to keep apart`);
+    for (let i = 0; i < shared.length; i++) {
+      for (let j = i + 1; j < shared.length; j++) {
+        const [a, b] = [shared[i][1], shared[j][1]];
+        const apart = a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0;
+        assert.ok(apart, `${groupBy}: ${shared[i][0]} and ${shared[j][0]} overlap`);
+      }
+    }
+    // Nobody stands on ground that is not their group's.
+    for (const node of nodes) {
+      const p = pos.get(node.id);
+      for (const [name, g] of shared) {
+        if (node.group === name) continue;
+        const inside = p.x > g.x0 && p.x < g.x1 && p.y > g.y0 && p.y < g.y1;
+        assert.ok(!inside, `${groupBy}: ${node.id} stands inside ${name}`);
+      }
+    }
+  }
+});
+
+await test("newcomers are found room beside their ties, on top of nobody", () => {
+  const room = { pitchX: 260, pitchY: 270 };
+  const taken = [{ x: 0, y: 0 }, { x: 260, y: 0 }, { x: 0, y: 270 }];
+  const crowds = (spot, list = taken) => list.some((p) => Math.abs(p.x - spot.x) < 250 && Math.abs(p.y - spot.y) < 260);
+
+  // An empty spot is taken as it is.
+  assert.deepEqual(layout.findRoom({ x: 1000, y: 1000 }, taken, room), { x: 1000, y: 1000 });
+  // A taken one gives the nearest free place beside it.
+  const beside = layout.findRoom({ x: 0, y: 0 }, taken, room);
+  assert.ok(!crowds(beside));
+  assert.ok(Math.hypot(beside.x, beside.y) <= 280, "right next door");
+  // Several wanting the same place fill in around it without overlapping.
+  const seated = [...taken];
+  for (let i = 0; i < 12; i++) {
+    const spot = layout.findRoom({ x: 0, y: 0 }, seated, room);
+    assert.ok(!crowds(spot, seated), `newcomer ${i} crowds someone`);
+    seated.push(spot);
+  }
+  // The scene's edge is respected, even when the wish lies far outside it.
+  const bounds = { x: -400, y: -400, w: 800, h: 800 };
+  const kept = layout.findRoom({ x: -5000, y: 90 }, taken, { ...room, bounds });
+  assert.ok(kept.x >= -400 && kept.x <= 400 && kept.y >= -400 && kept.y <= 400);
+  assert.ok(!crowds(kept));
 });
 
 await test("lineage layout puts sires above childer and survives loops", () => {
@@ -293,17 +430,6 @@ await test("lineage layout puts sires above childer and survives loops", () => {
   assert.ok(pos.get("a").y < pos.get("b").y && pos.get("b").y < pos.get("d").y);
   assert.equal(pos.get("b").y, pos.get("c").y);
   assert.ok(pos.get("x").y > pos.get("d").y, "characters outside the tree sit underneath");
-});
-
-await test("grouped layout keeps groups apart", () => {
-  const nodes = sampleNodes(12, 3);
-  const pos = layout.groupedLayout(nodes, { spacing: 260 });
-  const centre = (group) => {
-    const pts = nodes.filter((n) => n.group === group).map((n) => pos.get(n.id));
-    return { x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length };
-  };
-  const [c0, c1] = [centre("g0"), centre("g1")];
-  assert.ok(Math.hypot(c0.x - c1.x, c0.y - c1.y) > 400);
 });
 
 const visibility = await import("../scripts/visibility.mjs");

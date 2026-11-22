@@ -3,7 +3,8 @@
  * Lets the drawing code be checked in a browser without launching Foundry.
  */
 import { BOND_TYPES, FONT_STACKS, hexToNumber } from "../scripts/constants.mjs";
-import { circleLayout, forceLayout, groupedLayout, lineageLayout } from "../scripts/layout.mjs";
+import { autoLayout, circleLayout, lineageLayout } from "../scripts/layout.mjs";
+import { makeCourt } from "./court.mjs";
 import { MapRenderer } from "../scripts/renderer.mjs";
 
 const PIXI = globalThis.PIXI;
@@ -12,7 +13,7 @@ const log = (message) => { document.getElementById("log").textContent = message;
 const params = new URLSearchParams(location.search);
 const state = {
   style: params.get("style") ?? "constellation",
-  layout: params.get("layout") ?? "network",
+  layout: params.get("layout") ?? "auto",
   labels: params.get("labels") !== "0",
   subtitles: params.get("subtitles") !== "0",
   patterned: params.get("patterned") === "1",
@@ -64,6 +65,14 @@ const bonds = [
   { id: "b12", a: "iris", b: "vance", type: "distrust", strength: 2 },
   { id: "b13", a: "mara", b: "silas", type: "contact", strength: 1 }
 ];
+
+// ?court=60 swaps the hand-written cast for an invented court of that size (&seed=3 for another).
+const courtSize = Number(params.get("court")) || 0;
+if (courtSize) {
+  const court = makeCourt(courtSize, Number(params.get("seed")) || 7);
+  cast.splice(0, cast.length, ...court.cast);
+  bonds.splice(0, bonds.length, ...court.bonds);
+}
 
 // ?only=vance,odile limits the cast (handy for close-ups); ?max=3 raises the zoom cap.
 const only = (params.get("only") ?? "").split(",").filter(Boolean);
@@ -134,9 +143,13 @@ async function main() {
     const edges = bonds.map((bond) => ({ a: bond.a, b: bond.b, lineage: BOND_TYPES[bond.type].lineage }));
     const spacing = cards ? 300 : 270;
     if (state.layout === "circle") return circleLayout(nodes, { spacing });
-    if (state.layout === "groups") return groupedLayout(nodes, { spacing, stretchX: cards ? 1.9 : 1 });
     if (state.layout === "lineage") return lineageLayout(nodes, edges, { spacingX: cards ? 560 : 280, spacingY: 300 });
-    return forceLayout(nodes, edges, { spacing, stretchX: cards ? 1.7 : 1 });
+    return autoLayout(nodes, edges, {
+      spacing,
+      stretchX: cards ? 1.7 : 1,
+      grouped: state.groups !== "none",
+      bodyOffset: cards ? 0 : spacing * 0.12
+    });
   }
 
   function draw() {
@@ -191,7 +204,8 @@ async function main() {
     if (state.groups !== "none") {
       const buckets = new Map();
       for (const person of cast) {
-        const key = groupOf(person) || (state.groups === "coterie" ? "" : "Unaligned");
+        // Characters with no covenant, clan or coterie get no outline.
+        const key = groupOf(person);
         if (!key) continue;
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(person.id);
@@ -244,7 +258,7 @@ async function main() {
   const bar = document.getElementById("bar");
   const controls = [
     ["style", ["constellation", "cards"]],
-    ["layout", ["network", "circle", "groups", "lineage"]],
+    ["layout", ["auto", "circle", "lineage"]],
     ["groups", ["none", "covenant", "clan", "coterie"]],
     ["labels", [true, false]],
     ["patterned", [false, true]],

@@ -14,7 +14,7 @@
 import { FONT_STACKS, MODULE_ID, bondType, hexToNumber } from "./constants.mjs";
 import { allBonds, getBond } from "./bonds.mjs";
 import { bondText, statusText, t } from "./i18n.mjs";
-import { circleLayout, extent, forceLayout, gridLayout, groupedLayout, lineageLayout } from "./layout.mjs";
+import { autoLayout, circleLayout, extent, findRoom, lineageLayout } from "./layout.mjs";
 import { MapRenderer } from "./renderer.mjs";
 import { isMapScene, mapConfig, updateMapConfig } from "./scene.mjs";
 import { detailLines, groupFor, imageFor, isKeyPerson, statusFor } from "./system.mjs";
@@ -373,9 +373,8 @@ class MapController {
     if (GROUPINGS.has(config.groups)) {
       const buckets = new Map();
       for (const node of nodes) {
-        // Most characters belong to no coterie, so they get no outline of their own.
-        const key = groupFor(sheets.get(node.id), config.groups, user)
-          || (config.groups === "coterie" ? "" : t("Group.Unaligned"));
+        // A character with no covenant, clan or coterie gets no outline.
+        const key = groupFor(sheets.get(node.id), config.groups, user);
         if (!key) continue;
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(node.id);
@@ -488,7 +487,7 @@ class MapController {
   /**
    * Lay the map out. With two or more tokens selected only those move,
    * around their current centre; otherwise the whole map is arranged.
-   * @param {"network"|"circle"|"covenant"|"clan"|"coterie"|"lineage"} mode
+   * @param {"auto"|"circle"|"covenant"|"clan"|"coterie"|"lineage"} mode
    */
   async arrange(mode) {
     if (!this.active || !this.editing) return;
@@ -506,7 +505,10 @@ class MapController {
     const user = game.user;
     const unit = canvas.dimensions.size;
     const cards = config.style === "cards";
-    const groupBy = GROUPINGS.has(mode) ? mode : "covenant";
+    // Auto layout keeps together whatever the map is outlining; the grouped
+    // arrangements name what to gather by themselves.
+    const auto = mode !== "circle" && mode !== "lineage";
+    const groupBy = GROUPINGS.has(mode) ? mode : auto && GROUPINGS.has(config.groups) ? config.groups : null;
     const byActor = new Map();
     const nodes = tokens.map((token) => {
       const actor = baseActor(token.document);
@@ -514,7 +516,7 @@ class MapController {
         if (!byActor.has(actor.id)) byActor.set(actor.id, []);
         byActor.get(actor.id).push(token.document.id);
       }
-      return { id: token.document.id, group: groupFor(sheetActor(token.document), groupBy, user) };
+      return { id: token.document.id, group: groupBy ? groupFor(sheetActor(token.document), groupBy, user) : "" };
     });
     const edges = [];
     for (const bond of allBonds()) {
@@ -527,18 +529,30 @@ class MapController {
     // Cards are wide, so layouts are stretched horizontally to suit them.
     let width = unit;
     if (cards) {
-      const widths = tokens.map((token) => this.renderer?.localShape(token.document.id)?.w ?? unit * 4);
-      width = widths.reduce((sum, w) => sum + w, 0) / widths.length;
+      // Make room for the wider cards, not the average one: names vary a lot in length.
+      const widths = tokens.map((token) => this.renderer?.localShape(token.document.id)?.w ?? unit * 4)
+        .sort((a, b) => a - b);
+      width = widths[Math.floor((widths.length - 1) * 0.85)];
     }
     const spacing = unit * (cards ? 2.5 : 2.7);
     const stretchX = cards ? Math.min(3.4, Math.max(1.3, (width + unit * 0.9) / spacing)) : 1;
 
     let positions;
     if (mode === "circle") positions = circleLayout(nodes, { spacing: cards ? Math.max(spacing, width * 0.95) : spacing });
-    else if (GROUPINGS.has(mode)) positions = groupedLayout(nodes, { spacing, stretchX });
     else if (mode === "lineage") {
       positions = lineageLayout(nodes, edges, { spacingX: cards ? width + unit * 0.9 : unit * 2.8, spacingY: unit * 3 });
-    } else positions = forceLayout(nodes, edges, { spacing, stretchX });
+    } else {
+      const screen = canvas.app.renderer.screen;
+      positions = autoLayout(nodes, edges, {
+        spacing,
+        stretchX,
+        grouped: !!groupBy,
+        // Shaped like the window it will be looked at in.
+        aspect: Math.min(2.2, Math.max(1.2, screen.width / screen.height)),
+        // A constellation portrait has its name and captions hanging beneath it.
+        bodyOffset: cards ? 0 : unit * 0.3
+      });
+    }
 
     // Where the arrangement is centred.
     let centre;
@@ -580,6 +594,7 @@ class MapController {
     await this._moveTokens(scene, updates);
 
     if (GROUPINGS.has(mode) && config.groups !== mode) await updateMapConfig({ groups: mode }, scene);
+    ui.notifications.info(t("Notify.Arranged", { count: tokens.length }));
     if (!this._fitPending && canvas.scene === scene) {
       // Let the tokens settle into place before framing them.
       setTimeout(() => this.fitView(), 60);
@@ -605,7 +620,11 @@ class MapController {
     });
   }
 
-  /** Drop new characters onto the map in a tidy block around the current view. */
+  /**
+   * Put new characters on the map: beside the people they are bound to when
+   * those are here already, otherwise around the middle of the view, and never
+   * on top of anyone.
+   */
   async addActors(actorIds) {
     if (!this.active || !this.editing) return [];
     const scene = canvas.scene;
@@ -613,19 +632,57 @@ class MapController {
     if (!actors.length) return [];
     const unit = canvas.dimensions.size;
     const cards = this.config.style === "cards";
-    const grid = gridLayout(actors.map((actor) => ({ id: actor.id })), {
-      spacingX: unit * (cards ? 5.6 : 2.6),
-      spacingY: unit * (cards ? 2.2 : 2.7)
-    });
     const rect = canvas.dimensions.sceneRect;
-    const centre = { x: canvas.stage.pivot.x, y: canvas.stage.pivot.y };
-    const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max));
+    const room = {
+      pitchX: unit * (cards ? 5.6 : 2.6),
+      pitchY: unit * (cards ? 2.2 : 2.7),
+      bounds: { x: rect.x + unit * 1.5, y: rect.y + unit * 1.5, w: rect.width - unit * 3, h: rect.height - unit * 3 }
+    };
+
+    // Who is bound to whom, and where everyone already stands.
+    const partners = new Map();
+    const tie = (a, b) => {
+      if (!partners.has(a)) partners.set(a, new Set());
+      partners.get(a).add(b);
+    };
+    for (const bond of allBonds()) {
+      tie(bond.from, bond.to);
+      tie(bond.to, bond.from);
+    }
+    const taken = [];
+    const standing = new Map();
+    const stand = (actorId, centre) => {
+      taken.push(centre);
+      if (!standing.has(actorId)) standing.set(actorId, []);
+      standing.get(actorId).push(centre);
+    };
+    for (const token of canvas.tokens.placeables) {
+      if (!token.isPreview) stand(token.document.actorId, { x: token.center.x, y: token.center.y });
+    }
+    const beside = (actor) => [...(partners.get(actor.id) ?? [])].flatMap((id) => standing.get(id) ?? []);
+    const view = { x: canvas.stage.pivot.x, y: canvas.stage.pivot.y };
+
     const data = [];
-    for (const actor of actors) {
-      const p = grid.get(actor.id);
-      const x = clamp(centre.x + p.x - unit / 2, rect.x + unit, rect.x + rect.width - unit * 2);
-      const y = clamp(centre.y + p.y - unit / 2, rect.y + unit, rect.y + rect.height - unit * 2);
-      const document = await actor.getTokenDocument({ x: Math.round(x), y: Math.round(y) }, { parent: scene });
+    const waiting = [...actors];
+    while (waiting.length) {
+      // Whoever has someone to stand beside goes first, so that their own
+      // ties can follow them onto the map.
+      let next = waiting.findIndex((actor) => beside(actor).length);
+      if (next < 0) next = 0;
+      const [actor] = waiting.splice(next, 1);
+      const friends = beside(actor);
+      const want = friends.length
+        ? {
+          x: friends.reduce((sum, p) => sum + p.x, 0) / friends.length,
+          y: friends.reduce((sum, p) => sum + p.y, 0) / friends.length
+        }
+        : view;
+      const spot = findRoom(want, taken, room);
+      stand(actor.id, spot);
+      const document = await actor.getTokenDocument(
+        { x: Math.round(spot.x - unit / 2), y: Math.round(spot.y - unit / 2) },
+        { parent: scene }
+      );
       data.push(document.toObject());
     }
     return scene.createEmbeddedDocuments("Token", data);

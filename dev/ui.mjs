@@ -4,9 +4,11 @@
  *   /dev/ui.html              as the Storyteller
  *   /dev/ui.html?user=ann     as a player
  *   /dev/ui.html?style=cards  start in Cards view
+ *   /dev/ui.html?court=60     an invented court of 60, scattered about, to try Arrange on
  */
 import { installMiniFoundry, mountCanvas, Hooks } from "./mini-foundry.mjs";
-import { forceLayout } from "../scripts/layout.mjs";
+import { autoLayout } from "../scripts/layout.mjs";
+import { makeCourt } from "./court.mjs";
 
 const MODULE_ID = "vampire-relationships";
 const params = new URLSearchParams(location.search);
@@ -77,6 +79,21 @@ const bondSeed = [
   ["mara", "silas", "contact", everyone, { strength: 1 }]
 ];
 
+const courtSize = Number(params.get("court")) || 0;
+if (courtSize) {
+  const court = makeCourt(courtSize, Number(params.get("seed")) || 7);
+  cast.splice(0, cast.length, ...court.cast.map((person) => ({
+    id: person.id,
+    name: person.name,
+    ownership: { default: 1 },
+    system: person.clan === "Ghoul" ? { characterVariant: "ghoul" }
+      : person.clan === "Mortal" ? { characterVariant: "mortal" }
+        : kindred(person.clan, person.covenant, { vamp_rank: person.rank, faction: person.coterie, isTypeKnown: true }),
+    art: person.art
+  })));
+  bondSeed.splice(0, bondSeed.length, ...court.bonds.map((bond) => [bond.a, bond.b, bond.type, everyone, {}]));
+}
+
 async function main() {
   if (!globalThis.PIXI || !globalThis.Handlebars) {
     note.textContent = "PIXI / Handlebars did not load. Point FOUNDRY_APP at your Foundry resources/app folder.";
@@ -105,11 +122,18 @@ async function main() {
   });
   const cards = params.get("style") === "cards";
   const placed = cast.filter((person) => !person.offMap);
-  const positions = forceLayout(
-    placed.map((person) => ({ id: person.id })),
-    bondSeed.map(([a, b]) => ({ a, b })),
-    { spacing: cards ? 250 : 270, stretchX: cards ? 2.1 : 1 }
-  );
+  // The hand-written court starts out arranged; an invented one starts out
+  // as the mess a map becomes when characters are dropped wherever there is room.
+  const positions = courtSize
+    ? new Map(placed.map((person, i) => [person.id, {
+      x: Math.cos(i * 2.4) * 150 * Math.sqrt(i + 1),
+      y: Math.sin(i * 2.4) * 110 * Math.sqrt(i + 1)
+    }]))
+    : autoLayout(
+      placed.map((person) => ({ id: person.id })),
+      bondSeed.map(([a, b]) => ({ a, b })),
+      { spacing: cards ? 250 : 270, stretchX: cards ? 2.1 : 1 }
+    );
   for (const person of placed) {
     const p = positions.get(person.id);
     const actor = game.actors.get(person.id);
