@@ -169,7 +169,9 @@ function resetActors() {
 /*  Tests                                       */
 /* -------------------------------------------- */
 
-const { BOND_TYPES, CATEGORIES, DEFAULT_CONFIG, MODULE_ID, STATUSES, hexToNumber, statusDef } = await import("../scripts/constants.mjs");
+const {
+  BOND_TYPES, CATEGORIES, DEFAULT_CONFIG, GROUP_COLORS, MODULE_ID, STATUSES, groupColors, hexToNumber, mixColors, statusDef
+} = await import("../scripts/constants.mjs");
 const geometry = await import("../scripts/geometry.mjs");
 const layout = await import("../scripts/layout.mjs");
 
@@ -191,6 +193,31 @@ await test("bond catalogue is well formed", () => {
   assert.equal(hexToNumber("#ff0000"), 0xff0000);
   assert.equal(hexToNumber("nonsense", 7), 7);
   assert.equal(MODULE_ID, JSON.parse(readFileSync(join(root, "module.json"), "utf8")).id);
+});
+
+await test("every group gets a colour of its own, the same whoever asks", () => {
+  const covenants = ["Invictus", "Lancea et Sanctum", "Circle of the Crone", "Carthian Movement", "Ordo Dracul"];
+  const colors = groupColors(covenants);
+  assert.equal(colors.size, 5);
+  assert.equal(new Set(colors.values()).size, 5, "five covenants, five colours");
+  for (const color of colors.values()) assert.ok(GROUP_COLORS.includes(color));
+
+  // The answer hangs on the set of names, not on their order or on repeats.
+  const shuffled = groupColors([...covenants].reverse().concat(covenants, ["", "  ", null, undefined]));
+  assert.deepEqual([...shuffled].sort(), [...colors].sort());
+
+  // Eight groups use all eight colours; a ninth has to share one.
+  const eight = groupColors(Array.from({ length: 8 }, (_, i) => `Coterie ${i}`));
+  assert.equal(new Set(eight.values()).size, 8);
+  const twenty = groupColors(Array.from({ length: 20 }, (_, i) => `Coterie ${i}`));
+  assert.equal(twenty.size, 20);
+  assert.equal(new Set(twenty.values()).size, 8);
+
+  assert.equal(new Set(GROUP_COLORS).size, GROUP_COLORS.length);
+  assert.equal(groupColors([]).size, 0);
+  assert.equal(mixColors(0x000000, 0xffffff, 0.5), 0x808080);
+  assert.equal(mixColors(0x13a5bc, 0xf0eeea, 0), 0x13a5bc);
+  assert.equal(mixColors(0x13a5bc, 0xf0eeea, 1), 0xf0eeea);
 });
 
 await test("geometry: anchors sit on the border of each shape", () => {
@@ -566,6 +593,10 @@ await test("system adapter reads the Requiem sheet and respects 'type known'", (
   assert.equal(system.groupFor(actor("prince"), "covenant", gm), "Invictus");
   assert.equal(system.groupFor(actor("ghoul"), "clan", gm), "Ghoul");
   assert.equal(system.groupFor(actor("prince"), "clan", ann), "");
+  // The colour of a group is settled from the sheet itself, whoever is looking.
+  assert.equal(system.groupOf(actor("prince"), "clan"), "Ventrue");
+  assert.equal(system.groupOf(actor("sheriff"), "coterie"), "");
+  assert.equal(system.groupOf(null, "covenant"), "");
   assert.equal(system.imageFor({ texture: { src: "a.webp" } }, { img: "icons/svg/mystery-man.svg" }, "portrait"), "a.webp");
   assert.equal(system.imageFor({ texture: { src: "icons/svg/mystery-man.svg" } }, { img: "" }, "token"), "");
 });

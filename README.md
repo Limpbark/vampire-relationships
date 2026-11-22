@@ -16,7 +16,7 @@ system. It runs in any other system too; it just has less to print under each na
 
 ![Rank, bloodline and coterie under each name; Destroyed, Missing and Torpor flags](docs/status.jpg)
 
-![Auto layout: sixty characters, each covenant on ground of its own, the unattached beneath](docs/auto-layout.jpg)
+![Auto layout: sixty characters, each covenant in its own colour on ground of its own, the unattached beneath](docs/auto-layout.jpg)
 
 *Screenshots are from the development preview, with stand-in portraits and an invented court.*
 
@@ -105,8 +105,13 @@ A token's ordinary *hidden* toggle still works and hides it from every player.
   by name; press Enter to jump there.
 - **Filters.** Hide bond types you do not want to look at right now. Filters are personal.
 - **Appearance.** Portrait source (Actor portrait or token image), outlines around each
-  covenant, clan or coterie (a character with none gets no outline), patterned lines by
-  family, and a layout lock.
+  covenant, clan or coterie, patterned lines by family, and a layout lock.
+- **Group outlines.** Each group is drawn in a colour of its own, as an outline with a
+  faint wash inside and its name in the lower right corner. A group keeps its colour
+  from map to map, and it is the same colour for everyone at the table, whichever
+  groups each player can see. There are eight colours, picked to stay apart for
+  colour-blind readers too; a ninth group shares one. A character with no covenant,
+  clan or coterie gets no outline.
 - **Status.** Flag a character from their dossier with one click: Torpor, Missing, Left
   the City, Dead or Destroyed. The map shows it four ways at once, so it reads at any
   zoom: a boxed caption under the name, a badge on the portrait, a drained portrait, and
@@ -159,8 +164,8 @@ about, to try the arrangements on. It is not a substitute for testing in a real 
 To publish a release, push a version tag:
 
 ```
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.3.1
+git push origin v0.3.1
 ```
 
 GitHub Actions stamps the version into `module.json`, builds `module.zip` and attaches both

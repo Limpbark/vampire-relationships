@@ -2,7 +2,7 @@
  * Standalone preview of the map renderer with invented data.
  * Lets the drawing code be checked in a browser without launching Foundry.
  */
-import { BOND_TYPES, FONT_STACKS, hexToNumber } from "../scripts/constants.mjs";
+import { BOND_TYPES, FONT_STACKS, groupColors, hexToNumber } from "../scripts/constants.mjs";
 import { autoLayout, circleLayout, lineageLayout } from "../scripts/layout.mjs";
 import { makeCourt } from "./court.mjs";
 import { MapRenderer } from "../scripts/renderer.mjs";
@@ -210,7 +210,8 @@ async function main() {
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(person.id);
       }
-      groups = [...buckets].map(([key, nodeIds]) => ({ key, label: key, nodeIds }));
+      const colors = groupColors(buckets.keys());
+      groups = [...buckets].map(([key, nodeIds]) => ({ key, label: key, color: colors.get(key), nodeIds }));
     }
 
     renderer.render({

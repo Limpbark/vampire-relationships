@@ -11,13 +11,13 @@
  * Tokens stay real tokens: they are selected, dragged, targeted and opened
  * exactly as on any other scene.
  */
-import { FONT_STACKS, MODULE_ID, bondType, hexToNumber } from "./constants.mjs";
+import { FONT_STACKS, MODULE_ID, bondType, groupColors, hexToNumber } from "./constants.mjs";
 import { allBonds, getBond } from "./bonds.mjs";
 import { bondText, statusText, t } from "./i18n.mjs";
 import { autoLayout, circleLayout, extent, findRoom, lineageLayout } from "./layout.mjs";
 import { MapRenderer } from "./renderer.mjs";
 import { isMapScene, mapConfig, updateMapConfig } from "./scene.mjs";
-import { detailLines, groupFor, imageFor, isKeyPerson, statusFor } from "./system.mjs";
+import { detailLines, groupFor, groupOf, imageFor, isKeyPerson, statusFor } from "./system.mjs";
 import {
   actorSecrecy,
   baseActor,
@@ -379,7 +379,14 @@ class MapController {
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(node.id);
       }
-      for (const [key, nodeIds] of buckets) groups.push({ key, label: key, nodeIds });
+      // Colours are settled from every group on the map, not just the ones
+      // this viewer can see, so a covenant is the same colour for the whole table.
+      const colors = groupColors(
+        canvas.tokens.placeables
+          .filter((token) => !token.isPreview)
+          .map((token) => groupOf(sheetActor(token.document), config.groups))
+      );
+      for (const [key, nodeIds] of buckets) groups.push({ key, label: key, color: colors.get(key), nodeIds });
     }
 
     return {

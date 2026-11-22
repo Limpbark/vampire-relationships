@@ -20,13 +20,13 @@
  *                lines: [{ text, tone: "gold" | "muted" | "soft", caps }],
  *                status, statusLabel, key, secret, selected }],
  *     edges:  [{ id, a, b, color, strength, directed, category, label, secret, key }],
- *     groups: [{ key, label, nodeIds }],
+ *     groups: [{ key, label, color, nodeIds }],   // color is optional; gold without it
  *     focus:  { nodes: Set, edges: Set } | null,
  *     search: Set | null
  *   }
  */
 
-import { CATEGORIES, COLORS, FONT_STACKS, hexToNumber, statusDef } from "./constants.mjs";
+import { CATEGORIES, COLORS, FONT_STACKS, hexToNumber, mixColors, statusDef } from "./constants.mjs";
 import {
   arrowHead,
   dashPolyline,
@@ -671,8 +671,11 @@ export class MapRenderer {
       seen.add(group.key);
       const pad = unit * 0.42;
       const r = { x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 };
-      g.lineStyle({ width: Math.max(1, unit * 0.012), color: COLORS.gold, alpha: 0.3 });
-      g.beginFill(COLORS.gold, 0.022).drawRoundedRect(r.x, r.y, r.w, r.h, unit * 0.16).endFill();
+      // Each group wears its own colour: a firm outline to tell it from its
+      // neighbours, and a wash faint enough to leave the bonds in charge.
+      const color = group.color ?? COLORS.gold;
+      g.lineStyle({ width: Math.max(1.5, unit * 0.02), color, alpha: 0.9 });
+      g.beginFill(color, 0.1).drawRoundedRect(r.x, r.y, r.w, r.h, unit * 0.16).endFill();
 
       let view = this.groupViews.get(group.key);
       if (!view) {
@@ -681,21 +684,29 @@ export class MapRenderer {
         this.groupLabels.addChild(view.root);
       }
       const size = unit * 0.135;
-      const caption = `${group.label} · ${rects.length}`.toUpperCase();
-      const sig = `${caption}|${size}`;
+      const caption = String(group.label ?? "").toUpperCase();
+      // The name is lifted towards white so the darker colours still read.
+      const ink = mixColors(color, COLORS.text, 0.45);
+      const sig = `${caption}|${size}|${ink}`;
       if (view.sig !== sig) {
         this._clear(view.root);
         view.root.addChild(this._text(caption, {
           family: this.fonts.mono,
           size,
-          fill: COLORS.gold,
+          fill: ink,
           letterSpacing: size * 0.24
         }));
         view.sig = sig;
       }
+      // Lower right, inside the outline: the margin there is clear of the
+      // members and their names, and bond labels gather between portraits.
       const label = view.root.children[0];
-      view.root.position.set(r.x + unit * 0.06, r.y - (label?.height ?? size) - unit * 0.05);
-      view.root.alpha = 0.85;
+      const inset = unit * 0.11;
+      view.root.position.set(
+        r.x + r.w - (label?.width ?? 0) - inset,
+        r.y + r.h - (label?.height ?? size) - inset * 0.8
+      );
+      view.root.alpha = 0.95;
     }
     g.lineStyle(0);
     for (const [key, view] of this.groupViews) {

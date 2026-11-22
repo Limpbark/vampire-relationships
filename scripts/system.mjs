@@ -116,14 +116,24 @@ export function detailLines(actor, user, show = {}) {
   return lines;
 }
 
+/**
+ * The covenant, clan or coterie on a character's sheet, whoever is looking.
+ * Used to settle the colour of each group once for the whole table; what a
+ * viewer is shown goes through groupFor.
+ */
+export function groupOf(actor, by) {
+  if (!actor) return "";
+  const facts = characterFacts(actor);
+  if (by === "covenant") return facts.covenant ?? "";
+  if (by === "clan") return (facts.kind === "vampire" ? facts.clan : facts.kindLabel) ?? "";
+  if (by === "coterie") return facts.coterie ?? "";
+  return "";
+}
+
 /** Which outline a character belongs to when grouping by "covenant", "clan" or "coterie". */
 export function groupFor(actor, by, user) {
   if (!actor || !knowsNature(actor, user)) return "";
-  const facts = characterFacts(actor);
-  if (by === "covenant") return facts.covenant;
-  if (by === "clan") return facts.kind === "vampire" ? facts.clan : facts.kindLabel;
-  if (by === "coterie") return facts.coterie;
-  return "";
+  return groupOf(actor, by);
 }
 
 /**

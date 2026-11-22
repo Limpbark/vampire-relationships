@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1
+
+- Group outlines are coloured: each covenant, clan or coterie gets a colour of
+  its own, as a firmer outline with a faint wash inside. A group keeps its
+  colour from map to map and is the same colour for every player, whichever
+  groups they can see. The eight colours were checked to stay apart from one
+  another, for colour-blind readers too; past eight groups they come round again.
+- The group's name sits in the lower right corner, inside the outline, where it
+  keeps clear of bond labels.
+- The name no longer carries a count of the group's members.
+
 ## 0.3.0
 
 - **Auto layout** (Arrange → Auto layout) replaces the old Network arrangement

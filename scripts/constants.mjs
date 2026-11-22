@@ -157,6 +157,68 @@ export const FONT_STACKS = Object.freeze({
   mono: ["Geist Mono", "Cascadia Mono", "Consolas", "Menlo", "Courier New", "monospace"]
 });
 
+/**
+ * Outline colours for covenants, clans and coteries: eight hues, alternately
+ * light and dark. Every pair stays apart on the dark canvas, for full colour
+ * vision (OKLab distance of 15 or more) and under simulated red-green colour
+ * blindness (8 or more), so any two may end up as neighbours.
+ */
+export const GROUP_COLORS = Object.freeze([
+  0x13a5bc, 0xaf4d0b, 0x8f80f2, 0x298158, 0xe16190, 0x0e6ecb, 0xaa9325, 0x915398
+]);
+
+/** FNV-1a, 32 bit: a small stable hash, the same on every client. */
+function hashName(name) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < name.length; i++) {
+    hash ^= name.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+/**
+ * Give each group name a colour of its own.
+ *
+ * A name asks for the colour its hash picks, so it keeps that colour from map
+ * to map; when two names ask for the same one, the later in alphabetical order
+ * moves along to the next colour that is free. Past eight groups the colours
+ * come round again. The answer depends only on the set of names, never on
+ * their order, so pass every group on the map, not just those one viewer sees.
+ *
+ * @param {Iterable<string>} names
+ * @returns {Map<string, number>} name -> colour
+ */
+export function groupColors(names) {
+  const unique = [...new Set([...names].filter((name) => typeof name === "string" && name.trim()))];
+  const fold = (name) => name.trim().toLowerCase();
+  unique.sort((a, b) => {
+    const [x, y] = [fold(a), fold(b)];
+    return x < y ? -1 : x > y ? 1 : a < b ? -1 : a > b ? 1 : 0;
+  });
+  const size = GROUP_COLORS.length;
+  const out = new Map();
+  let taken = new Set();
+  for (const name of unique) {
+    if (taken.size === size) taken = new Set();
+    let slot = hashName(fold(name)) % size;
+    while (taken.has(slot)) slot = (slot + 1) % size;
+    taken.add(slot);
+    out.set(name, GROUP_COLORS[slot]);
+  }
+  return out;
+}
+
+/** Blend two colours: 0 gives `a`, 1 gives `b`. */
+export function mixColors(a, b, amount) {
+  const channel = (shift) => {
+    const from = (a >> shift) & 0xff;
+    const to = (b >> shift) & 0xff;
+    return Math.round(from + (to - from) * amount);
+  };
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
+}
+
 /** Parse "#rrggbb" into a number PIXI understands. */
 export function hexToNumber(hex, fallback = 0x9ca3af) {
   if (typeof hex === "number") return hex;
